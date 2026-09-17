@@ -1,0 +1,39 @@
+{
+	"name": "CLaupp Game Test",
+	"tree": {
+		"$className": "DataModel",
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+			"Cluaupp": {
+				"$path": "out/server"
+			}
+		},
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Cluaupp": {
+				"$path": "out/shared"
+			},
+			"CluauppLibs": {
+				"$path": "libs"
+			},
+			"Packages": {
+				"$path": "Packages"
+			}
+		},
+		"StarterPlayer": {
+			"$className": "StarterPlayer",
+			"StarterPlayerScripts": {
+				"$className": "StarterPlayerScripts",
+				"Cluaupp": {
+					"$path": "out/client"
+				}
+			}
+		},
+		"HttpService": {
+			"$className": "HttpService",
+			"$properties": {
+				"HttpEnabled": true
+			}
+		}
+	}
+}

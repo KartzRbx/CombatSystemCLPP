@@ -1,0 +1,74 @@
+[
+	{
+		"directory": "C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp",
+		"file": "C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src/client/init.client.cpp",
+		"arguments": [
+			"C:/Program Files/LLVM/bin/clang++.exe",
+			"-xc++",
+			"-std=c++20",
+			"-ferror-limit=0",
+			"-IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include",
+			"-IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src",
+			"-Iinclude",
+			"-Isrc",
+			"-include",
+			"C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include/cluaupp/roblox.hpp",
+			"-c",
+			"C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src/client/init.client.cpp"
+		]
+	},
+	{
+		"directory": "C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp",
+		"file": "C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src/server/leaderstats.server.cpp",
+		"arguments": [
+			"C:/Program Files/LLVM/bin/clang++.exe",
+			"-xc++",
+			"-std=c++20",
+			"-ferror-limit=0",
+			"-IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include",
+			"-IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src",
+			"-Iinclude",
+			"-Isrc",
+			"-include",
+			"C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include/cluaupp/roblox.hpp",
+			"-c",
+			"C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src/server/leaderstats.server.cpp"
+		]
+	},
+	{
+		"directory": "C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp",
+		"file": "C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src/shared/config.cpp",
+		"arguments": [
+			"C:/Program Files/LLVM/bin/clang++.exe",
+			"-xc++",
+			"-std=c++20",
+			"-ferror-limit=0",
+			"-IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include",
+			"-IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src",
+			"-Iinclude",
+			"-Isrc",
+			"-include",
+			"C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include/cluaupp/roblox.hpp",
+			"-c",
+			"C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src/shared/config.cpp"
+		]
+	},
+	{
+		"directory": "C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp",
+		"file": "C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src/shared/config.h",
+		"arguments": [
+			"C:/Program Files/LLVM/bin/clang++.exe",
+			"-xc++",
+			"-std=c++20",
+			"-ferror-limit=0",
+			"-IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include",
+			"-IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src",
+			"-Iinclude",
+			"-Isrc",
+			"-include",
+			"C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include/cluaupp/roblox.hpp",
+			"-c",
+			"C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src/shared/config.h"
+		]
+	}
+]

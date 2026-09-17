@@ -1,0 +1,11 @@
+[package]
+name = "kartzdev/cluaupp-game"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+# CluauppLibs already ships Janitor, Promise, Fusion, Iris, Cmdr, TopbarPlus,
+# Chrono, DataServiceV2, EzVisualz, StateMachine, Spring, Display, Module3D,
+# FormatNumber. Add Wally entries only for extra packages.
+
+[dependencies]

@@ -1,0 +1,7 @@
+-xc++
+-std=c++20
+-ferror-limit=0
+-Iinclude
+-Isrc
+-include
+include/cluaupp/roblox.hpp

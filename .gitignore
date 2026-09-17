@@ -1,0 +1,9 @@
+node_modules/
+out/
+Packages/
+.cluaupp-watch.lock
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db

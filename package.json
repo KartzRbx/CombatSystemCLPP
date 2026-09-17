@@ -1,0 +1,12 @@
+{
+	"name": "cluaupp-game-test",
+	"private": true,
+	"scripts": {
+		"build": "cluaupp build",
+		"watch": "cluaupp watch",
+		"dev": "cluaupp watch"
+	},
+	"dependencies": {
+		"cluaupp": "^0.2.2"
+	}
+}

@@ -1,0 +1,27 @@
+{
+	"configurations": [
+		{
+			"name": "Cluaupp",
+			"compilerPath": "C:/Program Files/LLVM/bin/clang++.exe",
+			"cStandard": "c17",
+			"cppStandard": "c++20",
+			"intelliSenseMode": "windows-clang-x64",
+			"includePath": [
+				"${workspaceFolder}/include",
+				"${workspaceFolder}/src"
+			],
+			"forcedInclude": [
+				"${workspaceFolder}/include/cluaupp/roblox.hpp"
+			],
+			"compileCommands": "${workspaceFolder}/compile_commands.json",
+			"browse": {
+				"path": [
+					"${workspaceFolder}/include",
+					"${workspaceFolder}/src"
+				],
+				"limitSymbolsToIncludedHeaders": true
+			}
+		}
+	],
+	"version": 4
+}

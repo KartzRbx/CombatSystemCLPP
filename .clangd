@@ -1,0 +1,28 @@
+CompileFlags:
+  CompilationDatabase: .
+  Add:
+    - -xc++
+    - -std=c++20
+    - -ferror-limit=0
+    - -IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include
+    - -IC:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/src
+    - -Iinclude
+    - -Isrc
+    - -include
+    - C:/Users/gtofr/OneDrive/Documentos/GitHub/TestandoCLuaupp/include/cluaupp/roblox.hpp
+
+Diagnostics:
+  Suppress: '*'
+
+---
+If:
+  PathMatch: .*\.(cpp|cc|cxx|c|h|hpp|hh)$
+CompileFlags:
+  Add:
+    - -xc++
+
+---
+If:
+  PathMatch: (out|libs)/.*
+Index:
+  Background: Skip
