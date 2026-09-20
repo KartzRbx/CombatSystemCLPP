@@ -1,0 +1,222 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.emitFlareLuau = emitFlareLuau;
+exports.emitFlareHeader = emitFlareHeader;
+exports.emitFlare = emitFlare;
+const CLPP_TYPE = {
+    u8: "int",
+    u16: "int",
+    u32: "int",
+    i8: "int",
+    i16: "int",
+    i32: "int",
+    f32: "double",
+    f64: "double",
+    bool: "bool",
+    string: "string",
+    Vector3: "Vector3",
+    Vector2: "Vector2",
+    CFrame: "CFrame",
+    Color3: "Color3",
+    UDim: "UDim",
+    UDim2: "UDim2",
+    BrickColor: "BrickColor",
+    buffer: "buffer",
+    Instance: "Instance",
+    Player: "Player",
+};
+const WRITE = {
+    u8: (c, v) => `Flare.writeu8(${c}, ${v})`,
+    u16: (c, v) => `Flare.writeu16(${c}, ${v})`,
+    u32: (c, v) => `Flare.writeu32(${c}, ${v})`,
+    i8: (c, v) => `Flare.writei8(${c}, ${v})`,
+    i16: (c, v) => `Flare.writei16(${c}, ${v})`,
+    i32: (c, v) => `Flare.writei32(${c}, ${v})`,
+    f32: (c, v) => `Flare.writef32(${c}, ${v})`,
+    f64: (c, v) => `Flare.writef64(${c}, ${v})`,
+    bool: (c, v) => `Flare.writebool(${c}, ${v})`,
+    string: (c, v) => `Flare.writestring(${c}, ${v})`,
+    Vector3: (c, v) => `Flare.writeVector3(${c}, ${v})`,
+    Vector2: (c, v) => `Flare.writeVector2(${c}, ${v})`,
+    CFrame: (c, v) => `Flare.writeCFrame(${c}, ${v})`,
+    Color3: (c, v) => `Flare.writeColor3(${c}, ${v})`,
+    UDim: (c, v) => `Flare.writeUDim(${c}, ${v})`,
+    UDim2: (c, v) => `Flare.writeUDim2(${c}, ${v})`,
+    BrickColor: (c, v) => `Flare.writeBrickColor(${c}, ${v})`,
+    buffer: (c, v) => `Flare.writebuffer(${c}, ${v})`,
+    Instance: (c, v) => `Flare.writeInstance(${c}, ${v})`,
+    Player: (c, v) => `Flare.writeInstance(${c}, ${v})`,
+};
+const READ = {
+    u8: (c) => `Flare.readu8(${c})`,
+    u16: (c) => `Flare.readu16(${c})`,
+    u32: (c) => `Flare.readu32(${c})`,
+    i8: (c) => `Flare.readi8(${c})`,
+    i16: (c) => `Flare.readi16(${c})`,
+    i32: (c) => `Flare.readi32(${c})`,
+    f32: (c) => `Flare.readf32(${c})`,
+    f64: (c) => `Flare.readf64(${c})`,
+    bool: (c) => `Flare.readbool(${c})`,
+    string: (c) => `Flare.readstring(${c})`,
+    Vector3: (c) => `Flare.readVector3(${c})`,
+    Vector2: (c) => `Flare.readVector2(${c})`,
+    CFrame: (c) => `Flare.readCFrame(${c})`,
+    Color3: (c) => `Flare.readColor3(${c})`,
+    UDim: (c) => `Flare.readUDim(${c})`,
+    UDim2: (c) => `Flare.readUDim2(${c})`,
+    BrickColor: (c) => `Flare.readBrickColor(${c})`,
+    buffer: (c) => `Flare.readbuffer(${c})`,
+    Instance: (c) => `Flare.readInstance(${c})`,
+    Player: (c) => `Flare.readInstance(${c})`,
+};
+function params(fields) {
+    return fields.map((field) => field.name).join(", ");
+}
+function clppParams(fields) {
+    return fields.map((field) => `${CLPP_TYPE[field.type]} ${field.name}`).join(", ");
+}
+function writeFields(fields, cursor = "cursor") {
+    if (fields.length === 0) {
+        return `\treturn ${cursor}`;
+    }
+    return fields.map((field) => `\t${WRITE[field.type](cursor, field.name)}`).join("\n") + `\n\treturn ${cursor}`;
+}
+function readFields(fields, cursor = "cursor") {
+    if (fields.length === 0) {
+        return "\treturn";
+    }
+    const lines = fields.map((field) => `\tlocal ${field.name} = ${READ[field.type](cursor)}`);
+    return `${lines.join("\n")}\n\treturn ${params(fields)}`;
+}
+function emitPacketLuau(packet) {
+    const args = params(packet.fields);
+    const fnArgs = args || "";
+    return `-- packet ${packet.name} (#${packet.id})
+local function write${packet.name}(cursor${fnArgs ? `, ${fnArgs}` : ""})
+${writeFields(packet.fields)}
+end
+
+local function read${packet.name}(cursor)
+${readFields(packet.fields)}
+end
+
+local ${packet.name} = session.packet({
+	id = ${packet.id},
+	from = "${packet.from === "Client" ? "client" : "server"}",
+	reliable = ${packet.reliable},
+	write = write${packet.name},
+	read = read${packet.name},
+})
+`;
+}
+function emitQueryLuau(query) {
+    const args = params(query.request);
+    return `-- query ${query.name} (#${query.id})
+local function write${query.name}Req(cursor${args ? `, ${args}` : ""})
+${writeFields(query.request)}
+end
+
+local function read${query.name}Req(cursor)
+${readFields(query.request)}
+end
+
+local function write${query.name}Res(cursor, value)
+	${WRITE[query.returns]("cursor", "value")}
+	return cursor
+end
+
+local function read${query.name}Res(cursor)
+	return ${READ[query.returns]("cursor")}
+end
+
+local ${query.name} = session.query({
+	id = ${query.id},
+	writeReq = write${query.name}Req,
+	readReq = read${query.name}Req,
+	writeRes = write${query.name}Res,
+	readRes = read${query.name}Res,
+})
+`;
+}
+function emitFlareLuau(schema) {
+    const names = [...schema.packets.map((p) => p.name), ...schema.queries.map((q) => q.name)];
+    const body = [
+        ...schema.packets.map(emitPacketLuau),
+        ...schema.queries.map(emitQueryLuau),
+    ].join("\n");
+    return `--!native
+--!optimize 2
+--!strict
+-- Generated by Cluaupp Flare from ${schema.sourcePath}
+-- Do not edit. Change the .flare schema and run cluaupp build.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Flare = require(ReplicatedStorage.CluauppLibs.Flare)
+
+local session = Flare.open(script)
+
+${body}
+return {
+${names.map((name) => `\t${name} = ${name},`).join("\n")}
+}
+`;
+}
+function emitPacketHeader(ns, packet) {
+    const data = clppParams(packet.fields);
+    const clientFire = data;
+    const serverFire = packet.from === "Server" ? data : "";
+    const struct = `${ns}${packet.name}`;
+    const lines = [`struct ${struct} {`];
+    if (packet.from === "Client") {
+        lines.push(`\tvoid FireServer(${clientFire});`);
+        lines.push(`\tRBXScriptConnection Connect(func fn);`);
+    }
+    else {
+        lines.push(`\tvoid Fire(Player player${serverFire ? `, ${serverFire}` : ""});`);
+        lines.push(`\tvoid FireAll(${serverFire});`);
+        lines.push(`\tRBXScriptConnection Connect(func fn);`);
+    }
+    lines.push(`};`);
+    return lines.join("\n");
+}
+function emitQueryHeader(ns, query) {
+    const req = clppParams(query.request);
+    const ret = CLPP_TYPE[query.returns];
+    return `struct ${ns}${query.name} {
+	${ret} Invoke(${req});
+	void On(func fn);
+};`;
+}
+function emitFlareHeader(schema) {
+    const ns = schema.name;
+    const structs = [
+        ...schema.packets.map((packet) => emitPacketHeader(ns, packet)),
+        ...schema.queries.map((query) => emitQueryHeader(ns, query)),
+    ];
+    const fields = [
+        ...schema.packets.map((packet) => `\t${ns}${packet.name} ${packet.name};`),
+        ...schema.queries.map((query) => `\t${ns}${query.name} ${query.name};`),
+    ];
+    return `#pragma once
+// cluaupp generated — do not edit. Change the .flare schema and run cluaupp build.
+// Generated by Cluaupp Flare from ${schema.sourcePath}
+// Tag + params in the .flare file. This header is IntelliSense; runtime is the generated .luau.
+
+${structs.join("\n\n")}
+
+struct ${ns} {
+${fields.join("\n")}
+};
+`;
+}
+function emitFlare(schema, relDir) {
+    const headerRel = `${relDir}${relDir.endsWith("/") || relDir === "" ? "" : "/"}${schema.name}.clh`.replace(/^\//, "");
+    const luauRel = `${relDir}${relDir.endsWith("/") || relDir === "" ? "" : "/"}${schema.name}.luau`.replace(/^\//, "");
+    return {
+        headerRel,
+        headerPath: headerRel,
+        header: emitFlareHeader(schema),
+        luauRel,
+        luau: emitFlareLuau(schema),
+    };
+}

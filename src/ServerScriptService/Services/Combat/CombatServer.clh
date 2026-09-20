@@ -1,0 +1,65 @@
+#pragma once
+#include <clpp/roblox.clh>
+#include <clpp/libs/hive.clh>
+#include <clpp/libs/roster.clh>
+#include <clpp/libs/ward.clh>
+#include "ReplicatedStorage/Shared/Services/Combat/PlayerECS.clh"
+#include "ReplicatedStorage/Shared/Net/Net.clh"
+
+struct CombatServer {
+	Players players = GetService<Players>();
+	auto World = PlayerECS.New();
+	Roster Entities = Roster.New();
+	int NextEntity = 1;
+
+	const float HITBOX_OFFSET = -3;
+	const float ATTACK_INTERVAL = 0.45;
+	const float COMBO_WINDOW = 1.2;
+	const float HITBOX_LIFE = 0.18;
+	const float HITBOX_WIDTH = 5;
+	const float HITBOX_HEIGHT = 6;
+	const float HITBOX_DEPTH = 4;
+	const float HITBOX_FORWARD = -3.2;
+	const float HITBOX_TRANSPARENCY = 0.55;
+	const float HITBOX_COLOR_R = 1;
+	const float HITBOX_COLOR_G = 0.25;
+	const float HITBOX_COLOR_B = 0.2;
+	const int MAX_COMBO = 4;
+	const int MAX_HEALTH = 100;
+	const int BASE_DAMAGE = 8;
+	const int COMBO_DAMAGE = 3;
+	const int ATTACK_RATE = 6;
+	const int ATTACK_BURST = 10;
+	const string ATTACK_CHANNEL = "attack";
+	const string HITBOX_NAME = "CombatHitbox";
+
+	const bool BindPlayerSessions();
+	const bool BindCombatRemotes();
+	const bool RegisterFighter(Player player);
+	const bool UnregisterFighter(Player player);
+	const bool OnCharacterSpawned(Player player, Model character);
+	const bool OnReady(Player player);
+	const bool OnAttack(Player player);
+
+	const int EnsureFighterEntity(Player player);
+	const bool SeedFighter(int fighterEntity, Player player);
+	const bool ClearFighter(int fighterEntity);
+	const bool IsFighterAlive(int fighterEntity);
+	const bool CanAcceptAttack(Player attacker, int fighterEntity);
+	const int AdvanceCombo(int fighterEntity, double now);
+
+	const bool SpawnHitbox(Player attacker, int attackerEntity);
+	const CFrame ComposeHitboxCFrame(BasePart rootPart);
+	const Part CreateHitboxPart(BasePart rootPart);
+	const bool BindHitboxTouched(Part hitbox, Player attacker, Model attackerCharacter, int attackerEntity, Roster struckPlayers);
+	const bool ScheduleHitboxDestroy(Part hitbox);
+	const bool OnHitboxTouched(BasePart hitPart, Player attacker, Model attackerCharacter, int attackerEntity, Roster struckPlayers);
+	const Player ResolveVictim(BasePart hitPart, Model attackerCharacter);
+	const bool TryMarkStruck(Roster struckPlayers, Player victim);
+
+	const bool ApplyHit(Player attacker, Player victim, int comboStage);
+	const int ComputeDamage(Player attacker, int comboStage);
+	const int ReadBonusDamage(Player attacker);
+	const bool SyncVictimHumanoid(Player victim, int currentHealth);
+	const bool BroadcastHit(Player attacker, Player victim, int damage, int comboStage);
+};

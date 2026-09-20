@@ -1,0 +1,22 @@
+#pragma once
+
+struct ShiftMachine {
+	void ChangeState(string name);
+	string GetState();
+	string GetCurrentState();
+	string GetPreviousState();
+	int GetId();
+	void Guard(string name, func fn);
+	void OnEnter(string name, func fn);
+	void OnLeave(string name, func fn);
+	bool CanEnter(string name);
+	buffer WriteId();
+	void ReadId(buffer buf);
+	auto GetData();
+	void ChangeData(string index, auto value);
+	void Destroy();
+};
+
+namespace Shift {
+	ShiftMachine New();
+}

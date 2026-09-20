@@ -1,0 +1,13 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include <clpp/libs/keep.clh>
+#include "../../ReplicatedStorage/Shared/Constants/Datas/TemplateData.clh"
+
+void init() {
+	PlayerTemplate playerData;
+	Keep.Server.Init(DataServiceOptions {
+		.Template = playerData,
+		.StoreName = "PlayerData",
+		.UseMock = true,
+	});
+}

@@ -1,0 +1,61 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include <clpp/libs/keep.clh>
+#include <clpp/libs/ward.clh>
+#include "ClickServer.clh"
+
+const bool ClickServer::BindClickRemote() {
+	guard (@this) else {
+		return false;
+	}
+
+	Net.ClickIntent~>Connect(func (Player player) {
+		@this.OnClick(player);
+	});
+	return true;
+}
+
+const bool ClickServer::BroadcastClickAck(Player player, int points, int damage) {
+	guard (@this && player) else {
+		return false;
+	}
+
+	Net.ClickAck.Fire(player, points, damage);
+	return true;
+}
+
+const bool ClickServer::GrantClick(Player player) {
+	guard (@this && player) else {
+		return false;
+	}
+
+	auto data = Keep.Server.WaitFor(player);
+	guard (data) else {
+		return false;
+	}
+	// So math values
+	int points = data.Get(Keep.Server.Paths.Currencies.Points) + @CLICK_POINTS;
+	int damage = data.Get(Keep.Server.Paths.Combat.Damage) + @CLICK_DAMAGE;
+
+	// Compile values
+	data.Set(Keep.Server.Paths.Currencies.Points, points);
+	data.Set(Keep.Server.Paths.Combat.Damage, damage);
+	
+	@this.BroadcastClickAck(player, points, damage);
+	return true;
+}
+
+const bool ClickServer::OnClick(Player player) {
+	guard (@this && player) else {
+		return false;
+	}
+	guard (Ward.Allow(player, @CLICK_CHANNEL, @CLICK_RATE, @CLICK_BURST)) else {
+		return false;
+	}
+
+	return @this.GrantClick(player);
+}
+
+void init() {
+	ClickServer::BindClickRemote();
+}

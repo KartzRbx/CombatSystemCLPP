@@ -1,0 +1,17 @@
+#pragma once
+
+namespace Ember {
+	void Emit(Instance root);
+	void Emit(Instance root, int count);
+	void Play(Instance effect);
+	void Stop(Instance effect);
+	Instance CloneOnto(Instance template_, Instance parent);
+	Instance Attach(Instance template_, Instance character);
+	Instance Attach(Instance template_, Instance character, string attachmentName);
+	void Scale(Instance root, double factor);
+	void DestroyAfter(Instance root);
+	void DestroyAfter(Instance root, double lifetime);
+	Instance Burst(Instance template_, Instance parent);
+	Instance Burst(Instance template_, Instance parent, int count);
+	Instance Burst(Instance template_, Instance parent, int count, double lifetime);
+}

@@ -1,0 +1,245 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include <clpp/libs/gleam.clh>
+#include <clpp/libs/bloom.clh>
+#include <clpp/libs/mint.clh>
+#include <clpp/libs/keep.clh>
+#include "ReplicatedStorage/Shared/Net/Net.clh"
+#include "../../../ReplicatedStorage/Shared/Services/Hud/ClickHud.clh"
+
+const bool ClickHud::RefreshPointsLabel() {
+	guard (@this && @PointsLabel && @PointsSource) else {
+		return false;
+	}
+
+	@PointsLabel.Text = Mint.Compact(@PointsSource.Get());
+	return true;
+}
+
+const bool ClickHud::OnPointsReplicated(int points) {
+	guard (@this && @PointsSource) else {
+		return false;
+	}
+
+	@PointsSource.Set(points);
+	@this.RefreshPointsLabel();
+	return true;
+}
+
+const bool ClickHud::OnClickAck(int points, int damage) {
+	guard (@this && @PointsSource && damage >= 0) else {
+		return false;
+	}
+
+	@PointsSource.Set(points);
+	@this.RefreshPointsLabel();
+	return true;
+}
+
+const TextLabel ClickHud::CreatePopupLabel() {
+	TextLabel popup = Gleam.TextLabel(GleamProps {
+		.Name = "ClickPopup",
+		.Text = @POPUP_TEXT,
+		.TextScaled = true,
+		.BackgroundTransparency = 1,
+		.Size = UDim2(0, 88, 0, 40),
+		.AnchorPoint = Vector2(0.5, 1),
+		.Position = UDim2(0.5, 0, 1, @POPUP_START_OFFSET),
+		.TextColor3 = Color3(1, 0.92, 0.28),
+		.ZIndex = 8,
+	});
+	return popup;
+}
+
+const bool ClickHud::EmitClickPopup() {
+	guard (@this && @HudGui) else {
+		return false;
+	}
+
+	TextLabel popup = @this.CreatePopupLabel();
+	Gleam.Mount(popup, @HudGui);
+	Bloom.Bounce(popup);
+	spawn {
+		task::wait(@POPUP_LIFE);
+		popup.Destroy();
+	};
+	return true;
+}
+
+const bool ClickHud::OnClickPressed() {
+	guard (@this && @me && @ClickButton) else {
+		return false;
+	}
+
+	Bloom.Press(@ClickButton, Bloom.Punch);
+	Bloom.Ripple(@ClickButton);
+	@this.EmitClickPopup();
+	Net.ClickIntent.FireServer();
+	return true;
+}
+
+const bool ClickHud::BindClickButton() {
+	guard (@this && @ClickButton) else {
+		return false;
+	}
+
+	@ClickButton.MouseButton1Click~>Connect(func () {
+		@this.OnClickPressed();
+	});
+	return true;
+}
+
+const bool ClickHud::BindClickAck() {
+	guard (@this) else {
+		return false;
+	}
+
+	Net.ClickAck~>Connect(func (int points, int damage) {
+		@this.OnClickAck(points, damage);
+	});
+	return true;
+}
+
+const bool ClickHud::BindPointsReplication() {
+	guard (@this && @Session) else {
+		return false;
+	}
+
+	@Session.GetChangedSignal(Keep.Client.Paths.Currencies.Points)~>Connect(func (int points) {
+		@this.OnPointsReplicated(points);
+	});
+	return true;
+}
+
+const bool ClickHud::BuildHud() {
+	guard (@this && @me && @me.PlayerGui) else {
+		return false;
+	}
+
+	@HudGui = Gleam.ScreenGui(GleamProps {
+		.Name = @HUD_NAME,
+		.ResetOnSpawn = false,
+		.IgnoreGuiInset = true,
+		.DisplayOrder = 20,
+	});
+
+	Frame bar = Gleam.Frame(GleamProps {
+		.Name = "ClickBar",
+		.AnchorPoint = Vector2(0.5, 1),
+		.Position = UDim2(0.5, 0, 1, @BAR_BOTTOM),
+		.Size = UDim2(0.4, 0, 0, @BAR_HEIGHT),
+		.BackgroundColor3 = Color3(@BAR_COLOR_R, @BAR_COLOR_G, @BAR_COLOR_B),
+		.BorderSizePixel = 0,
+	});
+
+	@PointsLabel = Gleam.TextLabel(GleamProps {
+		.Name = "Points",
+		.BackgroundTransparency = 1,
+		.AnchorPoint = Vector2(0.5, 0),
+		.Position = UDim2(0.5, 0, 0, 6),
+		.Size = UDim2(0.9, 0, 0, 28),
+		.TextScaled = true,
+		.TextColor3 = Color3(1, 1, 1),
+		.Text = "0",
+	});
+
+	@ClickButton = Gleam.TextButton(GleamProps {
+		.Name = "ClickButton",
+		.Text = @BUTTON_TEXT,
+		.TextScaled = true,
+		.AutoButtonColor = true,
+		.AnchorPoint = Vector2(0.5, 1),
+		.Position = UDim2(0.5, 0, 1, -8),
+		.Size = UDim2(0.86, 0, 0, @BUTTON_HEIGHT),
+		.BackgroundColor3 = Color3(@BUTTON_COLOR_R, @BUTTON_COLOR_G, @BUTTON_COLOR_B),
+		.TextColor3 = Color3(1, 1, 1),
+		.BorderSizePixel = 0,
+	});
+
+	Gleam.Mount(@HudGui, @me.PlayerGui);
+	Gleam.Mount(bar, @HudGui);
+	Gleam.Mount(@PointsLabel, bar);
+	Gleam.Mount(@ClickButton, bar);
+	Bloom.Hover(@ClickButton, Bloom.Lift);
+	@this.RefreshPointsLabel();
+	return true;
+}
+
+const bool ClickHud::BindKeep() {
+	guard (@this) else {
+		return false;
+	}
+
+	if (@Session) {
+		return true;
+	}
+
+	@Session = Keep.Client.Init();
+	guard (@Session) else {
+		return false;
+	}
+
+	int points = @Session.Get(Keep.Client.Paths.Currencies.Points);
+	@PointsSource = Gleam.Source(points);
+	return true;
+}
+
+const bool ClickHud::OnCharacterSpawned(Model character) {
+	guard (@this && @me && character) else {
+		return false;
+	}
+
+	if (@HudGui && @HudGui.Parent) {
+		return true;
+	}
+
+	if (!@Session) {
+		return @this.SetupClickHud();
+	}
+
+	@HudGui = null;
+	@PointsLabel = null;
+	@ClickButton = null;
+	guard (@this.BuildHud()) else {
+		return false;
+	}
+	@this.BindClickButton();
+	return true;
+}
+
+const bool ClickHud::BindCharacter() {
+	guard (@this && @me) else {
+		return false;
+	}
+
+	@me.CharacterAdded~>Connect(func (Model character) {
+		@this.OnCharacterSpawned(character);
+	});
+	if (@me.Character) {
+		@this.OnCharacterSpawned(@me.Character);
+	}
+	return true;
+}
+
+const bool ClickHud::SetupClickHud() {
+	guard (@this && @me) else {
+		return false;
+	}
+
+	guard (@this.BindKeep()) else {
+		return false;
+	}
+	guard (@this.BuildHud()) else {
+		return false;
+	}
+	@this.BindClickButton();
+	@this.BindClickAck();
+	@this.BindPointsReplication();
+	return true;
+}
+
+void init() {
+	auto hud = ClickHud;
+	hud.me = hud.players.LocalPlayer;
+	hud::BindCharacter();
+}

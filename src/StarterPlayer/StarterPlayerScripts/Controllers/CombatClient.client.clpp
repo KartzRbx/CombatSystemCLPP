@@ -1,0 +1,176 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include "ReplicatedStorage/Shared/Net/Net.clh"
+#include "../../../ReplicatedStorage/Shared/Services/Combat/CombatClient.clh"
+
+const bool CombatClient::IsAttackInput(InputObject input, bool gameProcessed) {
+	guard (!gameProcessed && input) else {
+		return false;
+	}
+
+	bool isMouse = input.UserInputType == Enum.UserInputType.MouseButton1;
+	bool isTouch = input.UserInputType == Enum.UserInputType.Touch;
+	return isMouse || isTouch;
+}
+
+const bool CombatClient::OnAttackInput(InputObject input, bool gameProcessed) {
+	guard (@this) else {
+		return false;
+	}
+	guard (@this.IsAttackInput(input, gameProcessed)) else {
+		return false;
+	}
+
+	return @this.SendAttack();
+}
+
+const bool CombatClient::OnCombatHello(int entityId, int health) {
+	guard (@this) else {
+		return false;
+	}
+
+	@EntityId = entityId;
+	@Health = health;
+	return true;
+}
+
+const bool CombatClient::OnHitReceived(Player attacker, Player victim, int damage, int comboStage) {
+	guard (@this && attacker && victim == @me && comboStage >= 0) else {
+		return false;
+	}
+
+	@Health = @Health - damage;
+	if (@Health < 0) {
+		@Health = 0;
+	}
+	return true;
+}
+
+const bool CombatClient::SendAttack() {
+	guard (@me) else {
+		return false;
+	}
+	guard (tick() - @LastHit >= @ATTACK_INTERVAL) else {
+		return false;
+	}
+
+	@LastHit = tick();
+	@ComboStage += 1;
+	if (@ComboStage > @MAX_COMBO) {
+		@ComboStage = 1;
+	}
+
+	Net.AttackIntent.FireServer();
+	@this.SpawnLocalHitbox();
+	return true;
+}
+
+const CFrame CombatClient::ComposeHitboxCFrame(BasePart rootPart) {
+	return rootPart.CFrame * CFrame(0, 0, @HITBOX_FORWARD);
+}
+
+const Part CombatClient::CreateLocalHitboxPart(BasePart rootPart) {
+	Part hitbox = new Part(workspace);
+	hitbox.Name = @LOCAL_HITBOX_NAME;
+	hitbox.Size = Vector3(@HITBOX_WIDTH, @HITBOX_HEIGHT, @HITBOX_DEPTH);
+	hitbox.CFrame = @this.ComposeHitboxCFrame(rootPart);
+	hitbox.Anchored = true;
+	hitbox.CanCollide = false;
+	hitbox.CanTouch = false;
+	hitbox.Massless = true;
+	hitbox.Transparency = @HITBOX_TRANSPARENCY;
+	hitbox.Color = Color3(@HITBOX_COLOR_R, @HITBOX_COLOR_G, @HITBOX_COLOR_B);
+	hitbox.CastShadow = false;
+	return hitbox;
+}
+
+const bool CombatClient::SpawnLocalHitbox() {
+	guard (@me && @me.Character) else {
+		return false;
+	}
+
+	auto rootPart = @me.Character.FindFirstChild("HumanoidRootPart", false);
+	guard (rootPart) else {
+		return false;
+	}
+
+	Part hitbox = @this.CreateLocalHitboxPart(rootPart);
+	spawn {
+		task::wait(@LOCAL_HITBOX_LIFE);
+		hitbox.Destroy();
+	};
+	return true;
+}
+
+const bool CombatClient::OnCharacterSpawned(Model character) {
+	guard (@this && @me && character) else {
+		return false;
+	}
+
+	@LastHit = 0;
+	@ComboStage = 0;
+	return true;
+}
+
+const bool CombatClient::BindCharacter() {
+	guard (@this && @me) else {
+		return false;
+	}
+
+	@me.CharacterAdded~>Connect(func (Model character) {
+		@this.OnCharacterSpawned(character);
+	});
+	if (@me.Character) {
+		@this.OnCharacterSpawned(@me.Character);
+	}
+	return true;
+}
+
+const bool CombatClient::BindCombatInput() {
+	guard (@this) else {
+		return false;
+	}
+
+	const auto inputService = GetService<UserInputService>();
+	inputService.InputBegan~>Connect(func (InputObject input, bool gameProcessed) {
+		@this.OnAttackInput(input, gameProcessed);
+	});
+	return true;
+}
+
+const bool CombatClient::BindCombatNet() {
+	guard (@this) else {
+		return false;
+	}
+
+	Net.CombatHello~>Connect(func (int entityId, int health) {
+		@this.OnCombatHello(entityId, health);
+	});
+
+	Net.HitResult~>Connect(func (Player attacker, Player victim, int damage, int comboStage) {
+		@this.OnHitReceived(attacker, victim, damage, comboStage);
+	});
+	return true;
+}
+
+const bool CombatClient::SetupPlayerCombat() {
+	guard (@this) else {
+		return false;
+	}
+
+	@this.BindCombatInput();
+	@this.BindCombatNet();
+	@this.BindCharacter();
+	return true;
+}
+
+void init() {
+	auto combat = CombatClient;
+	combat.me = combat.players.LocalPlayer;
+	combat.LastHit = 0;
+	combat.ComboStage = 0;
+	combat.EntityId = 0;
+	combat.Health = 100;
+	combat::SetupPlayerCombat();
+	Net.CombatReady.FireServer();
+}

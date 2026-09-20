@@ -1,0 +1,158 @@
+#pragma once
+
+// Keep — Cluaupp player data. ProfileStore session lock, tagged buffers, trades.
+// Runtime: CluauppLibs.Keep
+// CL++ has no templates inside struct — auto overloads for IntelliSense.
+
+struct DataPath {};
+struct DataProfile {
+	bool IsActive();
+	void Reconcile();
+	void AddUserId(int userId);
+	void Save();
+	bool SaveWait();
+	void EndSession();
+};
+
+struct DataBufferStats {
+	double Bytes;
+	double Messages;
+	double LastPacketBytes;
+	double LastUtilization;
+};
+
+struct OrderedListOptions {
+	string key;
+	string order;
+	int limit;
+};
+
+struct DataOrderList {
+	string Asc;
+	string Desc;
+};
+
+struct DataServiceEnum {
+	DataOrderList OrderList;
+};
+
+struct DataServiceOptions {
+	auto Template;
+	string StoreName;
+	bool UseMock;
+	string KeyPrefix;
+	LuaArray<DataPath> Exclude;
+	bool StrictPaths;
+	bool AutoCreateMissingTables;
+};
+
+struct Data {
+	RBXScriptSignal Changed;
+	bool Destroyed;
+
+	auto Get();
+	auto Get(DataPath path);
+
+	auto GetPersisted();
+	auto GetPersisted(DataPath path);
+
+	auto GetTransient();
+	auto GetTransient(DataPath path);
+
+	bool HasTransient();
+	bool HasTransient(DataPath path);
+
+	void Set(DataPath path, auto value);
+	void SetTransient(DataPath path, auto value);
+
+	auto Update(DataPath path, func fn);
+	auto UpdateTransient(DataPath path, func fn);
+
+	void ClearTransient();
+	void ClearTransient(DataPath path);
+
+	void ArrayInsert(DataPath path, auto value);
+	void ArrayInsert(DataPath path, auto value, int index);
+	void ArrayInsertTransient(DataPath path, auto value);
+	void ArrayInsertTransient(DataPath path, auto value, int index);
+
+	auto ArrayRemove(DataPath path, int index);
+	auto ArrayRemoveTransient(DataPath path, int index);
+
+	auto GetOrderedList(DataPath path, OrderedListOptions options);
+	auto GetOrderedListWithPriority(DataPath path, string key);
+	auto GetOrderedListWithPriority(DataPath path, string key, string order);
+
+	RBXScriptSignal GetChangedSignal(DataPath path);
+	RBXScriptSignal GetPathChangedSignal(DataPath path);
+	RBXScriptSignal GetIndexChangedSignal(DataPath path);
+	RBXScriptSignal GetArrayInsertedSignal(DataPath path);
+	RBXScriptSignal GetArrayRemovedSignal(DataPath path);
+
+	DataPath Typed(DataPath path);
+	void Destroy();
+};
+
+struct DataServiceServer {
+	DataPath Paths;
+	DataServiceServer Init(DataServiceOptions options);
+	Data WaitFor(Player player);
+	Data Get(Player player);
+	bool HasData(Player player);
+	DataProfile GetProfile(Player player);
+	DataBufferStats GetBufferStats();
+	DataBufferStats GetBufferStats(Player player);
+	void Destroy();
+};
+
+struct DataServiceClient {
+	DataPath Paths;
+	Data Init();
+	Data WaitForData();
+	Data Get();
+	DataBufferStats GetBufferStats();
+	void Destroy();
+};
+
+struct KeepStore {
+	static KeepStore New(string name, auto tmpl);
+	static void SetConstant(string name, auto value);
+	DataProfile StartSessionAsync(string key);
+	auto GetAsync(string key);
+	bool MessageAsync(string key, auto message);
+	void RemoveAsync(string key);
+};
+
+struct KeepVersionQuery {
+	auto Get(int index);
+	auto List();
+	auto Next();
+};
+
+struct KeepTradeOffer {
+	string Kind;
+	string Ref;
+	int Amount;
+};
+
+struct KeepTrade {
+	auto Ensure(auto data);
+	string Begin(DataProfile a, DataProfile b);
+	bool Reserve(DataProfile profile, string kind, string ref, int amount, string tradeId);
+	bool Reserve(DataProfile profile, string kind, string ref, int amount, string tradeId, auto extra);
+	bool Commit(KeepStore store, DataProfile a, DataProfile b, LuaArray<KeepTradeOffer> offersA, LuaArray<KeepTradeOffer> offersB);
+	void Abort(DataProfile profile, string tradeId);
+	void AbortIfActive(DataProfile profile);
+	bool SendOffline(KeepStore store, string key, auto payload);
+	void Credit(DataProfile profile, string kind, string ref, int amount, string operationId);
+	bool AlreadyReceived(DataProfile profile, string operationId, string kind, string ref);
+};
+
+struct Keep {
+	static DataServiceServer Server;
+	static DataServiceClient Client;
+	static DataPath Paths;
+	static DataServiceEnum Enum;
+	static KeepStore Store;
+	static KeepTrade Trade;
+};

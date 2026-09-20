@@ -1,0 +1,632 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include <clpp/libs/gleam.clh>
+#include <clpp/libs/bloom.clh>
+#include <clpp/libs/pin.clh>
+#include <clpp/libs/stage.clh>
+#include <clpp/libs/crest.clh>
+#include <clpp/libs/lens.clh>
+#include <clpp/libs/ember.clh>
+#include <clpp/libs/echo.clh>
+#include <clpp/libs/guide.clh>
+#include <clpp/libs/occlude.clh>
+#include <clpp/libs/helm.clh>
+#include <clpp/libs/mint.clh>
+#include <clpp/libs/axiom.clh>
+#include <clpp/libs/coil.clh>
+#include <clpp/libs/roster.clh>
+#include <clpp/libs/spark.clh>
+#include <clpp/libs/sweep.clh>
+#include <clpp/libs/promise.clh>
+#include <clpp/libs/flare.clh>
+#include <clpp/libs/arrayindexer.clh>
+#include <clpp/libs/keep.clh>
+#include <clpp/libs/net.clh>
+#include <clpp/libs/trace.clh>
+#include "LibBenchClient.clh"
+
+const bool LibBenchClient::Report(string name, double started, bool ok) {
+	guard (@this && name) else {
+		return false;
+	}
+
+	double elapsed = tick() - started;
+	double elapsedMs = elapsed * 1000;
+	post("[LibBenchClient] " .: name .: " " .: to_string(elapsedMs) .: " ms ok=" .: to_string(ok));
+	return ok;
+}
+
+const bool LibBenchClient::OnSparkHit() {
+	guard (@this) else {
+		return false;
+	}
+
+	@SparkHits += 1;
+	return true;
+}
+
+const bool LibBenchClient::OnLensDraw() {
+	guard (@this) else {
+		return false;
+	}
+
+	Lens.Text("LibBenchClient");
+	Lens.Value("sink", @WorkSink);
+	return true;
+}
+
+const bool LibBenchClient::OnGleamEffect() {
+	guard (@this) else {
+		return false;
+	}
+
+	@WorkSink += 1;
+	return true;
+}
+
+const bool LibBenchClient::BenchGleamSource() {
+	guard (@this) else {
+		return false;
+	}
+
+	GleamSource source = Gleam.Source(0);
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		source.Set(i);
+		i += 1;
+	}
+	@WorkSink = source.Get();
+	return @WorkSink == @HOT_ITERS - 1;
+}
+
+const bool LibBenchClient::BenchGleamCreate() {
+	guard (@this) else {
+		return false;
+	}
+
+	int i = 0;
+	while (i < @LIGHT_ITERS) {
+		Frame frame = Gleam.Frame(GleamProps {
+			.Name = "LibBenchFrame",
+			.Size = UDim2(0, 8, 0, 8),
+			.BackgroundTransparency = 1,
+		});
+		frame.Destroy();
+		i += 1;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchGleamMount() {
+	guard (@this && @me && @me.PlayerGui) else {
+		return false;
+	}
+
+	ScreenGui host = Gleam.ScreenGui(GleamProps {
+		.Name = "LibBenchHost",
+		.ResetOnSpawn = false,
+		.DisplayOrder = -50,
+	});
+	Gleam.Mount(host, @me.PlayerGui);
+	host.Destroy();
+	return true;
+}
+
+const bool LibBenchClient::BenchGleamSpring() {
+	guard (@this) else {
+		return false;
+	}
+
+	GleamSource source = Gleam.Source(0);
+	GleamSource sprung = Gleam.Spring(source, 20, 1);
+	source.Set(10);
+	guard (sprung) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchBloomPlay() {
+	guard (@this && @me && @me.PlayerGui) else {
+		return false;
+	}
+
+	ScreenGui host = Gleam.ScreenGui(GleamProps {
+		.Name = "LibBenchBloom",
+		.ResetOnSpawn = false,
+		.DisplayOrder = -50,
+	});
+	Frame target = Gleam.Frame(GleamProps {
+		.Name = "BloomTarget",
+		.Size = UDim2(0, 24, 0, 24),
+		.BackgroundColor3 = Color3(1, 1, 1),
+	});
+	Gleam.Mount(host, @me.PlayerGui);
+	Gleam.Mount(target, host);
+	BloomHandle shine = Bloom.Play(target, Bloom.Shine);
+	if (shine) {
+		shine.Destroy();
+	}
+	host.Destroy();
+	return true;
+}
+
+const bool LibBenchClient::BenchBloomFade() {
+	guard (@this && @me && @me.PlayerGui) else {
+		return false;
+	}
+
+	ScreenGui host = Gleam.ScreenGui(GleamProps {
+		.Name = "LibBenchFade",
+		.ResetOnSpawn = false,
+		.DisplayOrder = -50,
+	});
+	Frame target = Gleam.Frame(GleamProps {
+		.Name = "FadeTarget",
+		.Size = UDim2(0, 24, 0, 24),
+		.BackgroundColor3 = Color3(1, 1, 1),
+	});
+	Gleam.Mount(host, @me.PlayerGui);
+	Gleam.Mount(target, host);
+	Bloom.Fade(target, false, 40);
+	host.Destroy();
+	return true;
+}
+
+const bool LibBenchClient::BenchBloomPress() {
+	guard (@this && @me && @me.PlayerGui) else {
+		return false;
+	}
+
+	ScreenGui host = Gleam.ScreenGui(GleamProps {
+		.Name = "LibBenchPress",
+		.ResetOnSpawn = false,
+		.DisplayOrder = -50,
+	});
+	TextButton button = Gleam.TextButton(GleamProps {
+		.Name = "PressTarget",
+		.Size = UDim2(0, 40, 0, 24),
+		.Text = "x",
+	});
+	Gleam.Mount(host, @me.PlayerGui);
+	Gleam.Mount(button, host);
+	Bloom.Press(button, Bloom.Punch);
+	Bloom.Ripple(button);
+	host.Destroy();
+	return true;
+}
+
+const bool LibBenchClient::BenchPinCreate() {
+	guard (@this) else {
+		return false;
+	}
+
+	Part part = new Part();
+	part.Name = "LibBenchPin";
+	Frame gui = Gleam.Frame(GleamProps {
+		.Name = "PinGui",
+		.Size = UDim2(0, 40, 0, 16),
+	});
+	Pin pin = Pin.new_(part, gui);
+	guard (pin) else {
+		part.Destroy();
+		gui.Destroy();
+		return false;
+	}
+	pin.SetText("lib");
+	pin.Destroy();
+	part.Destroy();
+	return true;
+}
+
+const bool LibBenchClient::BenchStageAttach() {
+	guard (@this && @me && @me.PlayerGui) else {
+		return false;
+	}
+
+	ScreenGui host = Gleam.ScreenGui(GleamProps {
+		.Name = "LibBenchStage",
+		.ResetOnSpawn = false,
+		.DisplayOrder = -50,
+	});
+	Frame frame = Gleam.Frame(GleamProps {
+		.Name = "StageFrame",
+		.Size = UDim2(0, 64, 0, 64),
+	});
+	Part model = new Part();
+	model.Name = "LibBenchStagePart";
+	Gleam.Mount(host, @me.PlayerGui);
+	Gleam.Mount(frame, host);
+	Stage stage = Stage.Attach(frame, model);
+	guard (stage) else {
+		host.Destroy();
+		model.Destroy();
+		return false;
+	}
+	stage.Update(0.016);
+	stage.Destroy();
+	host.Destroy();
+	model.Destroy();
+	return true;
+}
+
+const bool LibBenchClient::BenchCrestCreate() {
+	guard (@this) else {
+		return false;
+	}
+
+	Crest icon = Crest.new_();
+	guard (icon) else {
+		return false;
+	}
+	icon.setName("LibBench");
+	icon.setLabel("LB");
+	icon.Destroy();
+	return true;
+}
+
+const bool LibBenchClient::BenchLensInit() {
+	guard (@this) else {
+		return false;
+	}
+
+	Lens.Init();
+	return true;
+}
+
+const bool LibBenchClient::BenchLensWindow() {
+	guard (@this) else {
+		return false;
+	}
+
+	Lens.Window("LibBenchClient", func () {
+		@this.OnLensDraw();
+	});
+	return true;
+}
+
+const bool LibBenchClient::BenchEmberScale() {
+	guard (@this) else {
+		return false;
+	}
+
+	Part part = new Part();
+	part.Name = "LibBenchEmber";
+	int i = 0;
+	while (i < @LIGHT_ITERS) {
+		Ember.Scale(part, 1);
+		i += 1;
+	}
+	part.Destroy();
+	return true;
+}
+
+const bool LibBenchClient::BenchEchoCFrame() {
+	guard (@this) else {
+		return false;
+	}
+
+	int i = 0;
+	while (i < @MID_ITERS) {
+		buffer packed = Echo.WriteCFrame(CFrame(i, 0, 0));
+		CFrame restored = Echo.ReadCFrame(packed);
+		guard (restored) else {
+			return false;
+		}
+		i += 1;
+	}
+	@WorkSink = i;
+	return true;
+}
+
+const bool LibBenchClient::BenchGuideStart() {
+	guard (@this) else {
+		return false;
+	}
+
+	Guide.Start();
+	return true;
+}
+
+const bool LibBenchClient::BenchOccludePosition() {
+	guard (@this) else {
+		return false;
+	}
+
+	Part part = new Part();
+	part.Name = "LibBenchOcclude";
+	Vector3 pos = Occlude.Position(part);
+	part.Destroy();
+	guard (pos) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchHelmRegistry() {
+	guard (@this) else {
+		return false;
+	}
+
+	HelmRegistry registry = Helm.Registry();
+	guard (registry) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchMintCompact() {
+	guard (@this) else {
+		return false;
+	}
+
+	string last = "";
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		last = Mint.Compact(i * 1000);
+		i += 1;
+	}
+	guard (last) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchAxiomLerp() {
+	guard (@this) else {
+		return false;
+	}
+
+	double acc = 0;
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		acc = acc + Axiom.Lerp(0, 10, 0.5);
+		i += 1;
+	}
+	@WorkSink = Axiom.Round(acc);
+	return acc > 0;
+}
+
+const bool LibBenchClient::BenchCoilStep() {
+	guard (@this) else {
+		return false;
+	}
+
+	Coil spring = Coil.New(1, 8, 0);
+	spring.Set(10);
+	int i = 0;
+	while (i < @MID_ITERS) {
+		spring.Step(0.016);
+		i += 1;
+	}
+	auto pos = spring.Get();
+	guard (pos) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchRosterPush() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		list.Push(i);
+		i += 1;
+	}
+	@WorkSink = list.Length();
+	return @WorkSink == @HOT_ITERS;
+}
+
+const bool LibBenchClient::BenchSparkFire() {
+	guard (@this) else {
+		return false;
+	}
+
+	@SparkHits = 0;
+	Spark bus = Spark.New();
+	bus~>Connect(func () {
+		@this.OnSparkHit();
+	});
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		bus.Fire();
+		i += 1;
+	}
+	bus.Destroy();
+	return @SparkHits == @HOT_ITERS;
+}
+
+const bool LibBenchClient::BenchSweepCleanup() {
+	guard (@this) else {
+		return false;
+	}
+
+	Sweep sweep = Sweep.New();
+	int i = 0;
+	while (i < @MID_ITERS) {
+		sweep.Add(func () {
+			return;
+		}, true);
+		i += 1;
+	}
+	sweep.Destroy();
+	return true;
+}
+
+const bool LibBenchClient::BenchPromiseResolve() {
+	guard (@this) else {
+		return false;
+	}
+
+	Promise job = Promise.resolve(1);
+	guard (job) else {
+		return false;
+	}
+
+	string status = job.GetStatus();
+	guard (status) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchFlareCursor() {
+	guard (@this) else {
+		return false;
+	}
+
+	int i = 0;
+	int last = 0;
+	while (i < @MID_ITERS) {
+		auto cursor = Flare.cursor(32);
+		Flare.writei32(cursor, i);
+		i += 1;
+		last = i;
+	}
+	@WorkSink = last;
+	return last == @MID_ITERS;
+}
+
+const bool LibBenchClient::BenchArrayIndexer() {
+	guard (@this) else {
+		return false;
+	}
+
+	ArrayIndexer indexer = ArrayIndexer.New();
+	int i = 0;
+	while (i < @MID_ITERS) {
+		int id = indexer.Acquire();
+		if (!indexer.Has(id)) {
+			return false;
+		}
+		i += 1;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchKeepClient() {
+	guard (@this) else {
+		return false;
+	}
+
+	auto data = Keep.Client.Get();
+	guard (data) else {
+		return true;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchNetEvent() {
+	guard (@this) else {
+		return false;
+	}
+
+	NetEvent bus = Net.Event("LibBenchPing");
+	guard (bus) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBenchClient::BenchTraceDisplay() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	list.Push("a");
+	list.Push(1);
+	string dump = Trace.Display(list);
+	guard (dump) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBenchClient::RunAll() {
+	guard (@this) else {
+		return false;
+	}
+
+	double started = tick();
+	double t = 0;
+
+	t = tick();
+	@this.Report("GleamSource", t, @this.BenchGleamSource());
+	t = tick();
+	@this.Report("GleamCreate", t, @this.BenchGleamCreate());
+	t = tick();
+	@this.Report("GleamMount", t, @this.BenchGleamMount());
+	t = tick();
+	@this.Report("GleamSpring", t, @this.BenchGleamSpring());
+	t = tick();
+	@this.Report("BloomPlay", t, @this.BenchBloomPlay());
+	t = tick();
+	@this.Report("BloomFade", t, @this.BenchBloomFade());
+	t = tick();
+	@this.Report("BloomPress", t, @this.BenchBloomPress());
+	t = tick();
+	@this.Report("PinCreate", t, @this.BenchPinCreate());
+	t = tick();
+	@this.Report("StageAttach", t, @this.BenchStageAttach());
+	t = tick();
+	@this.Report("CrestCreate", t, @this.BenchCrestCreate());
+	t = tick();
+	@this.Report("LensInit", t, @this.BenchLensInit());
+	t = tick();
+	@this.Report("LensWindow", t, @this.BenchLensWindow());
+	t = tick();
+	@this.Report("EmberScale", t, @this.BenchEmberScale());
+	t = tick();
+	@this.Report("EchoCFrame", t, @this.BenchEchoCFrame());
+	t = tick();
+	@this.Report("GuideStart", t, @this.BenchGuideStart());
+	t = tick();
+	@this.Report("OccludePosition", t, @this.BenchOccludePosition());
+	t = tick();
+	@this.Report("HelmRegistry", t, @this.BenchHelmRegistry());
+	t = tick();
+	@this.Report("MintCompact", t, @this.BenchMintCompact());
+	t = tick();
+	@this.Report("AxiomLerp", t, @this.BenchAxiomLerp());
+	t = tick();
+	@this.Report("CoilStep", t, @this.BenchCoilStep());
+	t = tick();
+	@this.Report("RosterPush", t, @this.BenchRosterPush());
+	t = tick();
+	@this.Report("SparkFire", t, @this.BenchSparkFire());
+	t = tick();
+	@this.Report("SweepCleanup", t, @this.BenchSweepCleanup());
+	t = tick();
+	@this.Report("PromiseResolve", t, @this.BenchPromiseResolve());
+	t = tick();
+	@this.Report("FlareCursor", t, @this.BenchFlareCursor());
+	t = tick();
+	@this.Report("ArrayIndexer", t, @this.BenchArrayIndexer());
+	t = tick();
+	@this.Report("KeepClient", t, @this.BenchKeepClient());
+	t = tick();
+	@this.Report("NetEvent", t, @this.BenchNetEvent());
+	t = tick();
+	@this.Report("TraceDisplay", t, @this.BenchTraceDisplay());
+	@this.Report("TOTAL", started, true);
+	return true;
+}
+
+void init() {
+	RunService runService = GetService<RunService>();
+	guard (runService.IsStudio()) else {
+		return;
+	}
+
+	auto bench = LibBenchClient;
+	bench.me = bench.players.LocalPlayer;
+	spawn {
+		task::wait(1);
+		LibBenchClient::RunAll();
+	};
+}

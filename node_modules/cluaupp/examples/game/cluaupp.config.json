@@ -1,0 +1,6 @@
+{
+	"rootDir": "src",
+	"outDir": "out",
+	"strict": false,
+	"architecture": false
+}

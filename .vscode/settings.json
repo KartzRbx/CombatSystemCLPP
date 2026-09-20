@@ -1,27 +1,32 @@
 {
-	"C_Cpp.intelliSenseEngine": "Disabled",
-	"C_Cpp.default.cppStandard": "c++20",
-	"C_Cpp.default.cStandard": "c17",
-	"C_Cpp.default.compilerPath": "C:/Program Files/LLVM/bin/clang++.exe",
-	"C_Cpp.default.intelliSenseMode": "windows-clang-x64",
-	"C_Cpp.default.includePath": [
-		"${workspaceFolder}/include",
-		"${workspaceFolder}/src"
-	],
-	"clangd.enable": true,
-	"clangd.arguments": [
-		"--compile-commands-dir=${workspaceFolder}",
-		"--header-insertion=never",
-		"--query-driver=**/clang++*,**/clang++.exe,**/g++*,**/g++.exe"
-	],
 	"files.associations": {
-		"*.hpp": "cpp",
-		"*.h": "cpp",
-		"*.server.cpp": "cpp",
-		"*.client.cpp": "cpp",
-		"*.plugin.cpp": "cpp",
-		"*.legacy.cpp": "cpp",
-		"*.legacy.server.cpp": "cpp",
-		"*.legacy.client.cpp": "cpp"
+		"*.clpp": "clpp",
+		"*.clp": "clpp",
+		"*.clh": "clpp",
+		"*.server.clpp": "clpp",
+		"*.client.clpp": "clpp",
+		"*.plugin.clpp": "clpp",
+		"*.flare": "flare",
+		"*.hive": "hive",
+		"*.mint": "mint",
+		"*.bloom": "bloom",
+		"*.helm": "helm",
+		"*.shift": "shift",
+		"*.axiom": "axiom"
+	},
+	"clpp.lsp.enabled": false,
+	"clangd.enable": false,
+	"[clpp]": {
+		"editor.semanticHighlighting.enabled": true,
+		"editor.quickSuggestions": {
+			"other": true,
+			"comments": false,
+			"strings": true
+		}
+	},
+	"[luau]": {
+		"editor.insertSpaces": false,
+		"editor.tabSize": 4,
+		"editor.detectIndentation": false
 	}
 }

@@ -1,0 +1,7 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include <clpp/libs/keep.clh>
+
+void init() {
+	Keep.Client.Init();
+}

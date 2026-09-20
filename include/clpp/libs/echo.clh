@@ -1,0 +1,52 @@
+#pragma once
+
+struct EchoEntity {
+	Player Player;
+	CFrame CFrame;
+	double Clock;
+};
+
+struct EchoHolder {
+	EchoEntity Get(Player player);
+	EchoEntity All();
+};
+
+struct EchoEntityLib {
+	EchoEntity new_(Player player);
+};
+
+struct EchoStats {
+	int Packets;
+	int PacketsSent;
+	int PacketsReceived;
+	int BytesSent;
+	int BytesReceived;
+	int Snapshots;
+};
+
+struct EchoConfig {
+	double Rate;
+	double Interpolate;
+	double MaxDistance;
+};
+
+struct EchoRules {
+	bool SkipLocal;
+};
+
+namespace Echo {
+	void Start();
+	EchoHolder Holder();
+	EchoEntityLib Entity();
+	buffer WriteCFrame(CFrame cf);
+	CFrame ReadCFrame(buffer buf);
+	EchoStats Stats();
+	EchoConfig Config();
+	EchoConfig Config(EchoConfig patch);
+	EchoRules ReplicationRules();
+	EchoRules ReplicationRules(EchoRules patch);
+	Folder Events();
+	auto Snapshots();
+	double ServerClock();
+	Player Player();
+}

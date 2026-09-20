@@ -1,0 +1,31 @@
+#pragma once
+
+struct HelmCommand {
+	string Name;
+	string Permission;
+	func Callback;
+};
+
+struct HelmRegistry {};
+struct HelmDispatcher {};
+struct HelmType {};
+
+struct HelmSession {
+	Player Player;
+	bool Run(string name);
+	bool Run(string name, auto a);
+	bool Run(string name, auto a, auto b);
+	bool Run(string name, auto a, auto b, auto c);
+};
+
+namespace Helm {
+	void RegisterDefaultCommands();
+	void RegisterHook(string name, func callback);
+	void RegisterType(string name, HelmType typeDefinition);
+	void RegisterCommand(HelmCommand commandDefinition);
+	HelmRegistry Registry();
+	HelmDispatcher Dispatcher();
+	void Give(Player player, Player target, int amount);
+	void Kick(Player player, Player target, string reason);
+	HelmSession Open(Player player);
+}

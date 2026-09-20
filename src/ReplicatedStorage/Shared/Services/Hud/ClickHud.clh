@@ -1,0 +1,44 @@
+#pragma once
+#include <clpp/roblox.clh>
+#include <clpp/libs/gleam.clh>
+#include <clpp/libs/keep.clh>
+
+struct ClickHud {
+	Players players = GetService<Players>();
+	Player me;
+	auto Session = null;
+	GleamSource PointsSource;
+	ScreenGui HudGui;
+	TextLabel PointsLabel;
+	TextButton ClickButton;
+
+	const string HUD_NAME = "ClickHud";
+	const string BUTTON_TEXT = "CLICK";
+	const string POPUP_TEXT = "+1";
+	const float POPUP_LIFE = 0.45;
+	const int POPUP_START_OFFSET = -108;
+	const int BAR_HEIGHT = 96;
+	const int BAR_BOTTOM = -18;
+	const int BUTTON_HEIGHT = 52;
+	const float BUTTON_COLOR_R = 0.92;
+	const float BUTTON_COLOR_G = 0.22;
+	const float BUTTON_COLOR_B = 0.28;
+	const float BAR_COLOR_R = 0.08;
+	const float BAR_COLOR_G = 0.08;
+	const float BAR_COLOR_B = 0.12;
+
+	const bool SetupClickHud();
+	const bool BindCharacter();
+	const bool BindKeep();
+	const bool BuildHud();
+	const bool BindClickButton();
+	const bool BindClickAck();
+	const bool BindPointsReplication();
+	const bool OnCharacterSpawned(Model character);
+	const bool OnClickPressed();
+	const bool OnClickAck(int points, int damage);
+	const bool OnPointsReplicated(int points);
+	const bool RefreshPointsLabel();
+	const bool EmitClickPopup();
+	const TextLabel CreatePopupLabel();
+};

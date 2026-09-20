@@ -1,0 +1,23 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include <clpp/libs/keep.clh>
+
+void BindLeaderstats(Player player) {
+	Data data = Keep.Server.WaitFor(player);
+	if (player.FindFirstChild("leaderstats") != null) {
+		return;
+	}
+	Folder leaderstats = new Folder(player);
+	leaderstats.Name = "leaderstats";
+	IntValue coins = new IntValue(leaderstats);
+	coins.Name = "Coins";
+	coins.Value = data.Get(Keep.Server.Paths.Currencies.Coins);
+}
+
+void init() {
+	Players players = GetService<Players>();
+	for (Player player in players.GetPlayers()) {
+		BindLeaderstats(player);
+	}
+	players.PlayerAdded~>Connect(BindLeaderstats);
+}

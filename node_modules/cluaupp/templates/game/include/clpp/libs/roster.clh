@@ -1,0 +1,117 @@
+#pragma once
+
+// Roster — table util + tagged buffer pack. No JSON on the hot path.
+// Pack tags: Nil=0 Bool=1 Number=2 String=3 Table=4 Array=5 Vector3=6 CFrame=7 Color3=8
+// Table = u16 count + key/value pairs. Array = u16 len + values. Methods also work as Roster::X(rawTable).
+
+struct Roster {
+	static Roster New();
+
+	int Size();
+	int Length();
+	bool IsEmpty();
+	auto GetData();
+
+	auto At(int index);
+	int Find(auto value);
+	int Find(auto value, int initPos);
+	int Find(auto value, int initPos, int maxPos);
+	bool Includes(auto value);
+	int Add(auto value);
+	int Push(auto value);
+	auto Pop();
+	auto Shift();
+	int Unshift(auto value);
+	auto RemoveAt(int index);
+
+	Roster Map(func mapper);
+	Roster Filter(func predicate);
+	auto Reduce(func reducer, auto initial);
+	bool Some(func predicate);
+	bool Every(func predicate);
+	void ForEach(func callback);
+	Roster Reverse();
+	Roster Clear();
+	Roster Clone();
+	Roster DeepClone();
+	Roster Keys();
+	Roster Values();
+	Roster Set(auto key, auto value);
+	auto Get(auto key);
+	auto Get(auto key, auto defaultValue);
+	bool Has(auto key);
+
+	Roster Concat(Roster other);
+	Roster Concat(auto other);
+	Roster Slice(int start);
+	Roster Slice(int start, int finish);
+	Roster Unique();
+	Roster Sort();
+	Roster Sort(func comparator);
+	Roster Shuffle();
+	Roster IndexBy(func mapper);
+	Roster IndexBy(string key);
+	Roster GroupBy(func mapper);
+	Roster GroupBy(string key);
+	Roster Merge(Roster other);
+	Roster Merge(auto other);
+	Roster Assign(Roster other);
+	Roster Assign(auto other);
+	Roster Flatten();
+	Roster Flatten(int depth);
+
+	buffer Pack();
+
+	static int Size(auto data);
+	static int Length(auto data);
+	static bool IsEmpty(auto data);
+	static auto At(auto data, int index);
+	static int Find(auto data, auto value);
+	static bool Includes(auto data, auto value);
+	static int Add(auto data, auto value);
+	static int Push(auto data, auto value);
+	static auto Pop(auto data);
+	static auto Shift(auto data);
+	static int Unshift(auto data, auto value);
+	static auto RemoveAt(auto data, int index);
+	static Roster Map(auto data, func mapper);
+	static Roster Filter(auto data, func predicate);
+	static auto Reduce(auto data, func reducer, auto initial);
+	static bool Some(auto data, func predicate);
+	static bool Every(auto data, func predicate);
+	static void ForEach(auto data, func callback);
+	static Roster Reverse(auto data);
+	static Roster Clear(auto data);
+	static Roster Clone(auto data);
+	static Roster DeepClone(auto data);
+	static Roster Keys(auto data);
+	static Roster Values(auto data);
+	static Roster Set(auto data, auto key, auto value);
+	static auto Get(auto data, auto key);
+	static bool Has(auto data, auto key);
+	static Roster Concat(auto data, auto other);
+	static Roster Slice(auto data, int start);
+	static Roster Slice(auto data, int start, int finish);
+	static Roster Unique(auto data);
+	static Roster Sort(auto data);
+	static Roster Sort(auto data, func comparator);
+	static Roster Shuffle(auto data);
+	static Roster IndexBy(auto data, func mapper);
+	static Roster IndexBy(auto data, string key);
+	static Roster GroupBy(auto data, func mapper);
+	static Roster GroupBy(auto data, string key);
+	static Roster Merge(auto data, auto other);
+	static Roster Assign(auto data, auto other);
+	static Roster Flatten(auto data);
+	static Roster Flatten(auto data, int depth);
+
+	static buffer Pack(auto value);
+	static auto Unpack(buffer buf);
+
+	static buffer WriteF64(LuaArray<double> values);
+	static LuaArray<double> ReadF64(buffer buf);
+	static buffer WriteI32(LuaArray<int> values);
+	static LuaArray<int> ReadI32(buffer buf);
+	static buffer WriteString(LuaArray<string> values);
+	static LuaArray<string> ReadString(buffer buf);
+};

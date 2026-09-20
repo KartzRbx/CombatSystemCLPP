@@ -1,0 +1,18 @@
+#pragma once
+
+struct TraceBuilder {
+	TraceBuilder MaxDepth(int depth);
+	TraceBuilder Indent(string indent);
+	string Display(auto value);
+	string display(auto value);
+	void Print(auto value);
+	TraceBuilder build();
+};
+
+namespace Trace {
+	TraceBuilder builder();
+	string Display(auto value);
+	string display(auto value);
+	void Print(auto value);
+	void Dump(auto value);
+}

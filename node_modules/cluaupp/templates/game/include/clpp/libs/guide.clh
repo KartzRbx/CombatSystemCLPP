@@ -1,0 +1,42 @@
+#pragma once
+#include <clpp/libs/sweep.clh>
+
+struct GuideStep {
+	void Enter(Sweep sweep);
+	void Exit();
+	Instance Highlight;
+};
+
+struct GuideConfig {
+	func Render;
+	func Highlight;
+	func OnStep;
+	func OnComplete;
+};
+
+struct GuideSession {
+	void Start();
+	void Start(int step);
+	bool GoTo(int step);
+	bool Advance();
+	bool Back();
+	void Complete();
+	int GetStep();
+	bool IsActive();
+	void Destroy();
+};
+
+struct GuideSteps {
+	static GuideStep new_(int order);
+	static GuideStep new_(func enter);
+	static GuideStep new_(int order, GuideStep spec);
+};
+
+namespace Guide {
+	GuideSteps Step;
+	GuideSession build(LuaArray<GuideStep> steps);
+	GuideSession build(LuaArray<GuideStep> steps, GuideConfig config);
+	GuideSession Start();
+	GuideSession Start(LuaArray<GuideStep> steps);
+	GuideSession Start(LuaArray<GuideStep> steps, GuideConfig config);
+}

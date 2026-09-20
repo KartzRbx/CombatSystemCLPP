@@ -1,0 +1,22 @@
+#pragma once
+
+struct Crest {
+	static Crest new_();
+	Crest setName(string name);
+	Crest setLabel(string text);
+	Crest setImage(string image);
+	Crest setEnabled(bool enabled);
+	Crest setOrder(int order);
+	Crest setWidth(int offset);
+	Crest align(string leftCenterOrRight);
+	Crest setLeft();
+	Crest setMid();
+	Crest setRight();
+	Crest bindEvent(string eventName, func callback);
+	Crest bindToggleItem(GuiObject gui);
+	Crest notify();
+	Crest clearNotices();
+	Crest select();
+	Crest deselect();
+	void Destroy();
+};

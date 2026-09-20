@@ -1,0 +1,415 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include <clpp/libs/ward.clh>
+#include <clpp/libs/keep.clh>
+#include "CombatServer.clh"
+
+const bool CombatServer::BindPlayerSessions() {
+	guard (@this) else {
+		return false;
+	}
+
+	for (Player player in @players.GetPlayers()) {
+		@this.RegisterFighter(player);
+	}
+
+	@players.PlayerAdded~>Connect(func (Player player) {
+		@this.RegisterFighter(player);
+	});
+
+	@players.PlayerRemoving~>Connect(func (Player player) {
+		@this.UnregisterFighter(player);
+	});
+	return true;
+}
+
+const bool CombatServer::BindCombatRemotes() {
+	guard (@this) else {
+		return false;
+	}
+
+	Net.AttackIntent~>Connect(func (Player player) {
+		@this.OnAttack(player);
+	});
+
+	Net.CombatReady~>Connect(func (Player player) {
+		@this.OnReady(player);
+	});
+	return true;
+}
+
+const int CombatServer::EnsureFighterEntity(Player player) {
+	guard (@this && player) else {
+		return 0;
+	}
+
+	int fighterEntity = @Entities.Get(player);
+	if (!fighterEntity) {
+		fighterEntity = @NextEntity;
+		@NextEntity += 1;
+		@Entities.Set(player, fighterEntity);
+	}
+	return fighterEntity;
+}
+
+const bool CombatServer::SeedFighter(int fighterEntity, Player player) {
+	guard (@this && fighterEntity && player) else {
+		return false;
+	}
+
+	@World.Set(fighterEntity, PlayerECS.Fighter, player.UserId);
+	@World.Set(fighterEntity, PlayerECS.Health, @MAX_HEALTH);
+	@World.Set(fighterEntity, PlayerECS.Cooldown, 0);
+	@World.Set(fighterEntity, PlayerECS.Combo, 0);
+	@World.Set(fighterEntity, PlayerECS.Alive, 1);
+	return true;
+}
+
+const bool CombatServer::ClearFighter(int fighterEntity) {
+	guard (@this && fighterEntity) else {
+		return false;
+	}
+
+	@World.Remove(fighterEntity, PlayerECS.Fighter);
+	@World.Remove(fighterEntity, PlayerECS.Health);
+	@World.Remove(fighterEntity, PlayerECS.Cooldown);
+	@World.Remove(fighterEntity, PlayerECS.Combo);
+	@World.Remove(fighterEntity, PlayerECS.Alive);
+	return true;
+}
+
+const bool CombatServer::IsFighterAlive(int fighterEntity) {
+	guard (@this && fighterEntity) else {
+		return false;
+	}
+
+	int aliveFlag = @World.Get(fighterEntity, PlayerECS.Alive);
+	if (!aliveFlag) {
+		return false;
+	}
+	return true;
+}
+
+const bool CombatServer::OnCharacterSpawned(Player player, Model character) {
+	guard (@this && player && character) else {
+		return false;
+	}
+
+	int fighterEntity = @Entities.Get(player);
+	guard (fighterEntity) else {
+		return false;
+	}
+
+	@World.Set(fighterEntity, PlayerECS.Health, @MAX_HEALTH);
+	@World.Set(fighterEntity, PlayerECS.Alive, 1);
+	@World.Set(fighterEntity, PlayerECS.Combo, 0);
+	return true;
+}
+
+const bool CombatServer::RegisterFighter(Player player) {
+	guard (@this && player) else {
+		return false;
+	}
+
+	int fighterEntity = @this.EnsureFighterEntity(player);
+	@this.SeedFighter(fighterEntity, player);
+
+	player.CharacterAdded~>Connect(func (Model character) {
+		@this.OnCharacterSpawned(player, character);
+	});
+	return true;
+}
+
+const bool CombatServer::UnregisterFighter(Player player) {
+	guard (@this && player) else {
+		return false;
+	}
+
+	int fighterEntity = @Entities.Get(player);
+	guard (fighterEntity) else {
+		return false;
+	}
+
+	@this.ClearFighter(fighterEntity);
+	@Entities.Set(player, 0);
+	return true;
+}
+
+const bool CombatServer::OnReady(Player player) {
+	guard (@this && player) else {
+		return false;
+	}
+
+	if (!@Entities.Get(player)) {
+		@this.RegisterFighter(player);
+	}
+
+	int fighterEntity = @Entities.Get(player);
+	int currentHealth = @World.Get(fighterEntity, PlayerECS.Health);
+	Net.CombatHello.Fire(player, fighterEntity, currentHealth);
+	return true;
+}
+
+const bool CombatServer::CanAcceptAttack(Player attacker, int fighterEntity) {
+	guard (@this && attacker && fighterEntity) else {
+		return false;
+	}
+	guard (Ward.Allow(attacker, @ATTACK_CHANNEL, @ATTACK_RATE, @ATTACK_BURST)) else {
+		return false;
+	}
+	guard (@this.IsFighterAlive(fighterEntity)) else {
+		return false;
+	}
+
+	double now = tick();
+	double lastHit = @World.Get(fighterEntity, PlayerECS.Cooldown);
+	if (!lastHit) {
+		lastHit = 0;
+	}
+	return now - lastHit >= @ATTACK_INTERVAL;
+}
+
+const int CombatServer::AdvanceCombo(int fighterEntity, double now) {
+	guard (@this && fighterEntity) else {
+		return 1;
+	}
+
+	double lastHit = @World.Get(fighterEntity, PlayerECS.Cooldown);
+	if (!lastHit) {
+		lastHit = 0;
+	}
+
+	int comboStage = @World.Get(fighterEntity, PlayerECS.Combo);
+	if (!comboStage) {
+		comboStage = 0;
+	}
+	if (now - lastHit > @COMBO_WINDOW) {
+		comboStage = 0;
+	}
+
+	comboStage = comboStage + 1;
+	if (comboStage > @MAX_COMBO) {
+		comboStage = 1;
+	}
+
+	@World.Set(fighterEntity, PlayerECS.Cooldown, now);
+	@World.Set(fighterEntity, PlayerECS.Combo, comboStage);
+	return comboStage;
+}
+
+const CFrame CombatServer::ComposeHitboxCFrame(BasePart rootPart) {
+	return rootPart.CFrame * CFrame(0, 0, @HITBOX_FORWARD);
+}
+
+const Part CombatServer::CreateHitboxPart(BasePart rootPart) {
+	
+	Part hitbox = new Part(workspace);
+	hitbox.Name = @HITBOX_NAME;
+	hitbox.Size = Vector3(@HITBOX_WIDTH, @HITBOX_HEIGHT, @HITBOX_DEPTH);
+	hitbox.CFrame = @this.ComposeHitboxCFrame(rootPart);
+	hitbox.Anchored = true;
+	hitbox.CanCollide = false;
+	hitbox.CanTouch = true;
+	hitbox.Massless = true;
+	hitbox.Transparency = @HITBOX_TRANSPARENCY;
+	hitbox.Color = Color3(@HITBOX_COLOR_R, @HITBOX_COLOR_G, @HITBOX_COLOR_B);
+	hitbox.CastShadow = false;
+	return hitbox;
+}
+
+const bool CombatServer::ScheduleHitboxDestroy(Part hitbox) {
+	guard (@this && hitbox) else {
+		return false;
+	}
+
+	spawn {
+		task::wait(@HITBOX_LIFE);
+		hitbox.Destroy();
+	};
+	return true;
+}
+
+const Player CombatServer::ResolveVictim(BasePart hitPart, Model attackerCharacter) {
+	guard (@this && hitPart) else {
+		return null;
+	}
+
+	auto hitModel = hitPart.Parent;
+	guard (hitModel && hitModel != attackerCharacter) else {
+		return null;
+	}
+
+	auto humanoid = hitModel.FindFirstChildWhichIsA("Humanoid", false);
+	guard (humanoid) else {
+		return null;
+	}
+
+	return @players.GetPlayerFromCharacter(hitModel);
+}
+
+const bool CombatServer::TryMarkStruck(Roster struckPlayers, Player victim) {
+	guard (@this && struckPlayers && victim) else {
+		return false;
+	}
+
+	int userId = victim.UserId;
+	guard (!struckPlayers.Get(userId)) else {
+		return false;
+	}
+
+	struckPlayers.Set(userId, true);
+	return true;
+}
+
+const bool CombatServer::OnHitboxTouched(BasePart hitPart, Player attacker, Model attackerCharacter, int attackerEntity, Roster struckPlayers) {
+	guard (@this && hitPart && attacker) else {
+		return false;
+	}
+
+	Player victim = @this.ResolveVictim(hitPart, attackerCharacter);
+	guard (victim && victim != attacker) else {
+		return false;
+	}
+	guard (@this.TryMarkStruck(struckPlayers, victim)) else {
+		return false;
+	}
+
+	int comboStage = @World.Get(attackerEntity, PlayerECS.Combo);
+	@this.ApplyHit(attacker, victim, comboStage);
+	return true;
+}
+
+const bool CombatServer::BindHitboxTouched(Part hitbox, Player attacker, Model attackerCharacter, int attackerEntity, Roster struckPlayers) {
+	guard (@this && hitbox && attacker && attackerCharacter && struckPlayers && attackerEntity) else {
+		return false;
+	}
+
+	hitbox.Touched~>Connect(func (BasePart hitPart) {
+		@this.OnHitboxTouched(hitPart, attacker, attackerCharacter, attackerEntity, struckPlayers);
+	});
+	return true;
+}
+
+const bool CombatServer::SpawnHitbox(Player attacker, int attackerEntity) {
+	guard (@this && attacker) else {
+		return false;
+	}
+
+	Model attackerCharacter = attacker.Character;
+	guard (attackerCharacter) else {
+		return false;
+	}
+
+	auto rootPart = attackerCharacter.FindFirstChild("HumanoidRootPart", false);
+	guard (rootPart) else {
+		return false;
+	}
+
+	Roster struckPlayers = Roster.New();
+	Part hitbox = @this.CreateHitboxPart(rootPart);
+	@this.BindHitboxTouched(hitbox, attacker, attackerCharacter, attackerEntity, struckPlayers);
+	@this.ScheduleHitboxDestroy(hitbox);
+	return true;
+}
+
+const int CombatServer::ReadBonusDamage(Player attacker) {
+	guard (@this && attacker) else {
+		return 0;
+	}
+
+	auto data = Keep.Server.Get(attacker);
+	guard (data) else {
+		return 0;
+	}
+
+	int bonusDamage = data.Get(Keep.Server.Paths.Combat.Damage);
+	guard (bonusDamage) else {
+		return 0;
+	}
+	return bonusDamage;
+}
+
+const int CombatServer::ComputeDamage(Player attacker, int comboStage) {
+	guard (@this && attacker) else {
+		return 0;
+	}
+
+	int bonusDamage = @this.ReadBonusDamage(attacker);
+	return @BASE_DAMAGE + comboStage * @COMBO_DAMAGE + bonusDamage;
+}
+
+const bool CombatServer::SyncVictimHumanoid(Player victim, int currentHealth) {
+	guard (@this && victim) else {
+		return false;
+	}
+
+	Model character = victim.Character;
+	guard (character) else {
+		return false;
+	}
+
+	auto humanoid = character.FindFirstChildWhichIsA("Humanoid", false);
+	guard (humanoid) else {
+		return false;
+	}
+
+	humanoid.Health = currentHealth;
+	return true;
+}
+
+const bool CombatServer::BroadcastHit(Player attacker, Player victim, int damage, int comboStage) {
+	guard (@this && attacker && victim) else {
+		return false;
+	}
+
+	Net.HitResult.FireAll(attacker, victim, damage, comboStage);
+	return true;
+}
+
+const bool CombatServer::ApplyHit(Player attacker, Player victim, int comboStage) {
+	guard (@this && attacker && victim && victim != attacker) else {
+		return false;
+	}
+
+	int victimEntity = @Entities.Get(victim);
+	guard (victimEntity && @this.IsFighterAlive(victimEntity)) else {
+		return false;
+	}
+
+	int damage = @this.ComputeDamage(attacker, comboStage);
+	int currentHealth = @World.Get(victimEntity, PlayerECS.Health);
+	currentHealth = currentHealth - damage;
+	if (currentHealth < 0) {
+		currentHealth = 0;
+	}
+
+	@World.Set(victimEntity, PlayerECS.Health, currentHealth);
+	@this.SyncVictimHumanoid(victim, currentHealth);
+
+	if (currentHealth <= 0) {
+		@World.Remove(victimEntity, PlayerECS.Alive);
+	}
+
+	@this.BroadcastHit(attacker, victim, damage, comboStage);
+	return true;
+}
+
+const bool CombatServer::OnAttack(Player player) {
+	guard (@this && player) else {
+		return false;
+	}
+
+	int fighterEntity = @Entities.Get(player);
+	guard (@this.CanAcceptAttack(player, fighterEntity)) else {
+		return false;
+	}
+
+	@this.AdvanceCombo(fighterEntity, tick());
+	@this.SpawnHitbox(player, fighterEntity);
+	return true;
+}
+
+void init() {
+	CombatServer::BindPlayerSessions();
+	CombatServer::BindCombatRemotes();
+}

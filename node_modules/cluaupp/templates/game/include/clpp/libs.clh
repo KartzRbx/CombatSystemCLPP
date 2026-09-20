@@ -1,0 +1,31 @@
+#pragma once
+// Cluaupp libraries — CL++ IntelliSense. clpp emits
+// require(ReplicatedStorage.CluauppLibs.*). Runtime lives in runtime/.
+
+#include <clpp/generated/instances.clh>
+#include <clpp/libs/sweep.clh>
+#include <clpp/libs/spark.clh>
+#include <clpp/libs/promise.clh>
+#include <clpp/libs/net.clh>
+#include <clpp/libs/flare.clh>
+#include <clpp/libs/keep.clh>
+#include <clpp/libs/mint.clh>
+#include <clpp/libs/axiom.clh>
+#include <clpp/libs/roster.clh>
+#include <clpp/libs/gleam.clh>
+#include <clpp/libs/bloom.clh>
+#include <clpp/libs/lens.clh>
+#include <clpp/libs/crest.clh>
+#include <clpp/libs/pin.clh>
+#include <clpp/libs/stage.clh>
+#include <clpp/libs/coil.clh>
+#include <clpp/libs/helm.clh>
+#include <clpp/libs/shift.clh>
+#include <clpp/libs/hive.clh>
+#include <clpp/libs/ward.clh>
+#include <clpp/libs/ember.clh>
+#include <clpp/libs/echo.clh>
+#include <clpp/libs/guide.clh>
+#include <clpp/libs/trace.clh>
+#include <clpp/libs/arrayindexer.clh>
+#include <clpp/libs/occlude.clh>

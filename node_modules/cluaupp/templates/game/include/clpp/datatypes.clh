@@ -1,0 +1,611 @@
+#pragma once
+#include <clpp/generated/enums.clh>
+using Enum::EasingStyle;
+using Enum::EasingDirection;
+using Enum::Material;
+using Enum::FontWeight;
+using Enum::FontStyle;
+using Enum::RaycastFilterType;
+using Enum::PathWaypointAction;
+using Enum::CatalogSortType;
+using Enum::CatalogSortAggregation;
+using Enum::CatalogCategoryFilter;
+using Enum::SalesTypeFilter;
+using Enum::KeyInterpolationMode;
+using Enum::NormalId;
+using Enum::Axis;
+
+using string = const char*;
+
+// Variadic join. Cluaupp emits Luau a .. b .. c.
+template <typename... Args>
+string string_concat(Args... args);
+
+struct Instance;
+struct Player;
+
+// Stand-in for values the C++ IntelliSense stubs cannot name precisely.
+struct LuauValue {
+	LuauValue();
+	LuauValue(auto value);
+};
+
+template <typename T>
+struct LuaArray {
+	T* _begin;
+	T* _end;
+	T* begin() const { return _begin; }
+	T* end() const { return _end; }
+	int Size() const;
+	T operator[](int index) const;
+};
+
+// 3D point or direction. Luau: Vector3.new(x, y, z).
+struct Vector3 {
+	double X;
+	double Y;
+	double Z;
+	double Magnitude;
+	Vector3();
+	Vector3(double x, double y, double z);
+	static Vector3 zero;
+	static Vector3 one;
+	static Vector3 xAxis;
+	static Vector3 yAxis;
+	static Vector3 zAxis;
+	static Vector3 FromNormalId(NormalId normal);
+	static Vector3 FromAxis(Axis axis);
+	Vector3 Unit();
+	Vector3 Abs();
+	Vector3 Ceil();
+	Vector3 Floor();
+	Vector3 Sign();
+	Vector3 Cross(Vector3 other);
+	double Dot(Vector3 other);
+	Vector3 Lerp(Vector3 goal, double alpha);
+	Vector3 Max(Vector3 other);
+	Vector3 Min(Vector3 other);
+	bool FuzzyEq(Vector3 other, double epsilon);
+	double Angle(Vector3 other);
+};
+
+// 2D point or direction. Luau: Vector2.new(x, y).
+struct Vector2 {
+	double X;
+	double Y;
+	double Magnitude;
+	Vector2();
+	Vector2(double x, double y);
+	static Vector2 zero;
+	static Vector2 one;
+	static Vector2 xAxis;
+	static Vector2 yAxis;
+	Vector2 Unit();
+	Vector2 Abs();
+	Vector2 Ceil();
+	Vector2 Floor();
+	Vector2 Sign();
+	double Cross(Vector2 other);
+	double Dot(Vector2 other);
+	Vector2 Lerp(Vector2 goal, double alpha);
+	Vector2 Max(Vector2 other);
+	Vector2 Min(Vector2 other);
+	bool FuzzyEq(Vector2 other, double epsilon);
+	double Angle(Vector2 other);
+};
+
+// Vector3 with 16-bit integers.
+struct Vector3int16 {
+	int X;
+	int Y;
+	int Z;
+	Vector3int16();
+	Vector3int16(int x, int y, int z);
+};
+
+// Vector2 with 16-bit integers.
+struct Vector2int16 {
+	int X;
+	int Y;
+	Vector2int16();
+	Vector2int16(int x, int y);
+};
+
+// 3D position + rotation. Luau: CFrame.new(...) / CFrame.lookAt(...).
+struct CFrame {
+	Vector3 Position;
+	Vector3 LookVector;
+	Vector3 RightVector;
+	Vector3 UpVector;
+	Vector3 XVector;
+	Vector3 YVector;
+	Vector3 ZVector;
+	CFrame();
+	CFrame(double x, double y, double z);
+	CFrame(Vector3 pos);
+	CFrame(Vector3 pos, Vector3 lookAt);
+	CFrame(double x, double y, double z, double qX, double qY, double qZ, double qW);
+	static CFrame identity;
+	static CFrame lookAt(Vector3 from, Vector3 lookAt);
+	static CFrame lookAt(Vector3 from, Vector3 lookAt, Vector3 up);
+	static CFrame lookAlong(Vector3 from, Vector3 direction);
+	static CFrame lookAlong(Vector3 from, Vector3 direction, Vector3 up);
+	static CFrame fromEulerAngles(double rx, double ry, double rz);
+	static CFrame fromEulerAnglesXYZ(double rx, double ry, double rz);
+	static CFrame fromEulerAnglesYXZ(double rx, double ry, double rz);
+	static CFrame fromOrientation(double rx, double ry, double rz);
+	static CFrame fromAxisAngle(Vector3 axis, double angle);
+	static CFrame fromMatrix(Vector3 pos, Vector3 vX, Vector3 vY, Vector3 vZ);
+	CFrame Rotation();
+	CFrame Inverse();
+	CFrame Lerp(CFrame goal, double alpha);
+	CFrame Orthonormalize();
+	CFrame ToWorldSpace(CFrame cf);
+	CFrame ToObjectSpace(CFrame cf);
+	Vector3 PointToWorldSpace(Vector3 v);
+	Vector3 PointToObjectSpace(Vector3 v);
+	Vector3 VectorToWorldSpace(Vector3 v);
+	Vector3 VectorToObjectSpace(Vector3 v);
+	void GetComponents();
+	void ToEulerAnglesXYZ();
+	void ToEulerAnglesYXZ();
+	void ToOrientation();
+	void ToAxisAngle();
+	bool FuzzyEq(CFrame other, double epsilon);
+};
+
+// 1D scale + offset (GUI). Luau: UDim.new(scale, offset).
+struct UDim {
+	double Scale;
+	double Offset;
+	UDim();
+	UDim(double scale, double offset);
+};
+
+// 2D scale + offset (GUI). Luau: UDim2.new / UDim2.fromScale / UDim2.fromOffset.
+struct UDim2 {
+	UDim X;
+	UDim Y;
+	UDim Width;
+	UDim Height;
+	UDim2();
+	UDim2(double xScale, double xOffset, double yScale, double yOffset);
+	UDim2(UDim x, UDim y);
+	static UDim2 fromScale(double x, double y);
+	static UDim2 fromOffset(double x, double y);
+	UDim2 Lerp(UDim2 goal, double alpha);
+};
+
+// RGB color 0–1. Luau: Color3.new / Color3.fromRGB / Color3.fromHSV / Color3.fromHex.
+struct Color3 {
+	double R;
+	double G;
+	double B;
+	Color3();
+	Color3(double r, double g, double b);
+	static Color3 fromRGB(double r, double g, double b);
+	static Color3 fromHSV(double h, double s, double v);
+	static Color3 fromHex(string hex);
+	Color3 Lerp(Color3 goal, double alpha);
+	void ToHSV();
+	string ToHex();
+};
+
+// Named Roblox color. BrickColor.new(name) or BrickColor.new(r,g,b).
+struct BrickColor {
+	int Number;
+	string Name;
+	Color3 Color;
+	double r;
+	double g;
+	double b;
+	BrickColor(string name);
+	BrickColor(int palette);
+	BrickColor(double r, double g, double b);
+	BrickColor(Color3 color);
+	static BrickColor White;
+	static BrickColor Gray;
+	static BrickColor DarkGray;
+	static BrickColor Black;
+	static BrickColor Red;
+	static BrickColor Yellow;
+	static BrickColor Green;
+	static BrickColor Blue;
+	static BrickColor palette(int index);
+	static BrickColor random();
+};
+
+// 2D rectangle. Rect.new(min, max) or Rect.new(x0,y0,x1,y1).
+struct Rect {
+	Vector2 Min;
+	Vector2 Max;
+	double Width;
+	double Height;
+	Rect(Vector2 min, Vector2 max);
+	Rect(double x0, double y0, double x1, double y1);
+};
+
+// 3D ray. Ray.new(origin, direction).
+struct Ray {
+	Vector3 Origin;
+	Vector3 Direction;
+	Ray(Vector3 origin, Vector3 direction);
+	Ray Unit();
+	Vector3 ClosestPoint(Vector3 point);
+	double Distance(Vector3 point);
+};
+
+// Filters for WorldRoot:Raycast.
+struct RaycastParams {
+	LuaArray<Instance> FilterDescendantsInstances;
+	RaycastFilterType FilterType;
+	bool IgnoreWater;
+	string CollisionGroup;
+	bool RespectCanCollide;
+	bool BruteForceAllSlow;
+	RaycastParams();
+};
+
+// Result of a raycast.
+struct RaycastResult {
+	Instance Instance;
+	Vector3 Position;
+	Vector3 Normal;
+	double Distance;
+	string Material;
+};
+
+// Filters for GetPartBoundsInBox / GetPartsInPart.
+struct OverlapParams {
+	LuaArray<Instance> FilterDescendantsInstances;
+	RaycastFilterType FilterType;
+	int MaxParts;
+	string CollisionGroup;
+	bool RespectCanCollide;
+	bool BruteForceAllSlow;
+	OverlapParams();
+};
+
+// Numeric interval. NumberRange.new(min, max).
+struct NumberRange {
+	double Min;
+	double Max;
+	NumberRange(double value);
+	NumberRange(double min, double max);
+};
+
+// NumberSequenceKeypoint
+struct NumberSequenceKeypoint {
+	double Time;
+	double Value;
+	double Envelope;
+	NumberSequenceKeypoint(double time, double value);
+	NumberSequenceKeypoint(double time, double value, double envelope);
+};
+
+// Number curve over time (0–1).
+struct NumberSequence {
+	NumberSequenceKeypoint* Keypoints;
+	NumberSequence(double value);
+	NumberSequence(double n0, double n1);
+};
+
+// ColorSequenceKeypoint
+struct ColorSequenceKeypoint {
+	double Time;
+	Color3 Value;
+	double Envelope;
+	ColorSequenceKeypoint(double time, Color3 color);
+};
+
+// Color3 curve over time.
+struct ColorSequence {
+	ColorSequenceKeypoint* Keypoints;
+	ColorSequence(Color3 color);
+	ColorSequence(Color3 c0, Color3 c1);
+};
+
+// Parameters for TweenService:Create.
+struct TweenInfo {
+	double Time;
+	Enum::EasingStyle EasingStyle;
+	Enum::EasingDirection EasingDirection;
+	int RepeatCount;
+	bool Reverses;
+	double DelayTime;
+	TweenInfo();
+	TweenInfo(double time);
+	TweenInfo(double time, Enum::EasingStyle style);
+	TweenInfo(double time, Enum::EasingStyle style, Enum::EasingDirection direction);
+	TweenInfo(double time, Enum::EasingStyle style, Enum::EasingDirection direction, int repeatCount, bool reverses, double delayTime);
+};
+
+// UI font. Font.new(family, weight, style).
+struct Font {
+	string Family;
+	FontWeight Weight;
+	FontStyle Style;
+	bool Bold;
+	Font(string family);
+	Font(string family, FontWeight weight, FontStyle style);
+	static Font fromEnum(Font enumFont);
+	static Font fromName(string name);
+	static Font fromId(long long id);
+};
+
+// Density, friction, and elasticity of a BasePart.
+struct PhysicalProperties {
+	double Density;
+	double Friction;
+	double Elasticity;
+	double FrictionWeight;
+	double ElasticityWeight;
+	double AcousticAbsorption;
+	PhysicalProperties(Material material);
+	PhysicalProperties(double density, double friction, double elasticity);
+	PhysicalProperties(double density, double friction, double elasticity, double frictionWeight, double elasticityWeight);
+};
+
+// Axis-aligned box. Region3.new(min, max).
+struct Region3 {
+	CFrame CFrame;
+	Vector3 Size;
+	Region3(Vector3 min, Vector3 max);
+	Region3 ExpandToGrid(double resolution);
+};
+
+// Region3int16
+struct Region3int16 {
+	Vector3int16 Min;
+	Vector3int16 Max;
+	Region3int16(Vector3int16 min, Vector3int16 max);
+};
+
+// UTC instant. DateTime.now() / DateTime.fromUnixTimestamp().
+struct DateTime {
+	double UnixTimestamp;
+	double UnixTimestampMillis;
+	static DateTime now();
+	static DateTime fromUnixTimestamp(double unixTimestamp);
+	static DateTime fromUnixTimestampMillis(double unixTimestampMillis);
+	static DateTime fromUniversalTime(int year, int month, int day, int hour, int minute, int second, int millisecond);
+	static DateTime fromLocalTime(int year, int month, int day, int hour, int minute, int second, int millisecond);
+	static DateTime fromIsoDate(string isoDate);
+	void ToUniversalTime();
+	void ToLocalTime();
+	string ToIsoDate();
+	string FormatUniversalTime(string format, string locale);
+	string FormatLocalTime(string format, string locale);
+};
+
+// RNG. Random.new(seed).
+struct Random {
+	Random();
+	Random(double seed);
+	int NextInteger(int min, int max);
+	double NextNumber();
+	Vector3 NextUnitVector();
+	Random Clone();
+	void Shuffle();
+};
+
+// PathWaypoint
+struct PathWaypoint {
+	Vector3 Position;
+	PathWaypointAction Action;
+	string Label;
+	PathWaypoint(Vector3 position, PathWaypointAction action);
+	PathWaypoint(Vector3 position, PathWaypointAction action, string label);
+};
+
+// Faces
+struct Faces {
+	bool Top;
+	bool Bottom;
+	bool Left;
+	bool Right;
+	bool Front;
+	bool Back;
+	Faces();
+};
+
+// Axes
+struct Axes {
+	bool X;
+	bool Y;
+	bool Z;
+	bool Top;
+	bool Bottom;
+	bool Left;
+	bool Right;
+	bool Front;
+	bool Back;
+	Axes();
+};
+
+// RBXScriptConnection
+struct RBXScriptConnection {
+	bool Connected;
+	void Disconnect();
+};
+
+// Event. PlayerAdded.Connect(callback) — F matches any listener arity.
+struct RBXScriptSignal {
+	RBXScriptConnection Connect(func callback);
+	RBXScriptConnection Once(func callback);
+	RBXScriptConnection ConnectParallel(func callback);
+	LuauValue Wait();
+};
+
+// CatalogSearchParams
+struct CatalogSearchParams {
+	string SearchKeyword;
+	int MinPrice;
+	int MaxPrice;
+	CatalogSortType SortType;
+	CatalogSortAggregation SortAggregation;
+	CatalogCategoryFilter CategoryFilter;
+	SalesTypeFilter SalesTypeFilter;
+	int Limit;
+	CatalogSearchParams();
+};
+
+// DockWidgetPluginGuiInfo
+struct DockWidgetPluginGuiInfo {
+	DockWidgetPluginGuiInfo();
+};
+
+// FloatCurveKey
+struct FloatCurveKey {
+	double Time;
+	double Value;
+	KeyInterpolationMode Interpolation;
+	FloatCurveKey(double time, double value);
+};
+
+// RotationCurveKey
+struct RotationCurveKey {
+	double Time;
+	CFrame Value;
+	KeyInterpolationMode Interpolation;
+	RotationCurveKey(double time, CFrame value);
+};
+
+// Path2DControlPoint
+struct Path2DControlPoint {
+	UDim2 Position;
+	UDim2 LeftTangent;
+	UDim2 RightTangent;
+	Path2DControlPoint();
+};
+
+// Asset reference (replaces several ContentId uses).
+struct Content {
+	Content();
+	static Content fromUri(string uri);
+	static Content fromAssetId(long long assetId);
+};
+
+// ContentId
+struct ContentId {
+	ContentId(string uri);
+};
+
+// SharedTable
+struct SharedTable {
+	SharedTable();
+};
+
+// Secret
+struct Secret {
+	Secret();
+};
+
+// Luau binary buffer. Library + type: buffer::create, buffer::writeu32, buffer::readf64.
+struct buffer {
+	buffer();
+	static buffer create(int size);
+	static buffer fromstring(string str);
+	static string tostring(buffer b);
+	static string tostring(buffer b, int offset);
+	static string tostring(buffer b, int offset, int count);
+	static int len(buffer b);
+	static void copy(buffer target, int targetOffset, buffer source);
+	static void copy(buffer target, int targetOffset, buffer source, int sourceOffset);
+	static void copy(buffer target, int targetOffset, buffer source, int sourceOffset, int count);
+	static void fill(buffer b, int offset, int value);
+	static void fill(buffer b, int offset, int value, int count);
+	static int readi8(buffer b, int offset);
+	static int readu8(buffer b, int offset);
+	static int readi16(buffer b, int offset);
+	static int readu16(buffer b, int offset);
+	static int readi32(buffer b, int offset);
+	static int readu32(buffer b, int offset);
+	static double readf32(buffer b, int offset);
+	static double readf64(buffer b, int offset);
+	static string readstring(buffer b, int offset, int count);
+	static int readbits(buffer b, int bitOffset, int bitCount);
+	static void writei8(buffer b, int offset, int value);
+	static void writeu8(buffer b, int offset, int value);
+	static void writei16(buffer b, int offset, int value);
+	static void writeu16(buffer b, int offset, int value);
+	static void writei32(buffer b, int offset, int value);
+	static void writeu32(buffer b, int offset, int value);
+	static void writef32(buffer b, int offset, double value);
+	static void writef64(buffer b, int offset, double value);
+	static void writestring(buffer b, int offset, string value);
+	static void writestring(buffer b, int offset, string value, int count);
+	static void writebits(buffer b, int bitOffset, int bitCount, int value);
+};
+
+// BinaryString
+struct BinaryString {
+	BinaryString();
+};
+
+// SharedString
+struct SharedString {
+	SharedString();
+};
+
+// UniqueId
+struct UniqueId {
+	UniqueId();
+};
+
+// ProtectedString
+struct ProtectedString {
+	ProtectedString();
+};
+
+// OptionalCoordinateFrame
+struct OptionalCoordinateFrame {
+	OptionalCoordinateFrame();
+};
+
+// SecurityCapabilities
+struct SecurityCapabilities {
+	SecurityCapabilities();
+};
+
+struct AdReward {};
+
+struct AnimTrackMetadata {};
+
+struct AnimTrackPlayState {};
+
+struct AnimTrackWeight {};
+
+struct AssetContentMap {};
+
+struct CSGPropertyData {};
+
+struct ClipEvaluator {};
+
+struct CollectionHandle {};
+
+struct Color3uint8 {};
+
+struct CoordinateFrame {};
+
+struct FacsReplicationData {};
+
+struct InstanceRef {};
+
+struct NetAssetRef {};
+
+struct OpenCloudModel {};
+
+struct QDir {};
+
+struct QFont {};
+
+struct ReplicationPV {};
+
+struct ScopedInstanceIdentity {};
+
+struct SystemAddress {};
+
+struct ValueCurveKey {};
+
+struct WebViewParams {};

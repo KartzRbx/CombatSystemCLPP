@@ -1,5 +1,12 @@
 {
+	"unwantedRecommendations": [
+		"ms-vscode.cpptools",
+		"llvm-vs-code-extensions.vscode-clangd",
+		"kartzdev.cluaupp-diagnostics",
+		"kartzdev.cluaupp-intellisense"
+	],
 	"recommendations": [
-		"llvm-vs-code-extensions.vscode-clangd"
+		"clpp.clpp-language",
+		"kartzdev.cluaupp-flare"
 	]
 }

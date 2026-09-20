@@ -1,0 +1,24 @@
+#pragma once
+
+namespace Lens {
+	void Init();
+	void Window(string title, func draw);
+	void Text(string text);
+	bool Button(string label);
+	bool Button(string label, func onClick);
+	bool Checkbox(string label);
+	bool Checkbox(string label, bool value);
+	double Slider(string label, double value);
+	double Slider(string label, double value, double max);
+	double Slider(string label, double value, double min, double max);
+	bool Tree(string label);
+	void Tree(string label, func draw);
+	void Table(string title);
+	void Table(string title, LuaArray<LuaArray<string>> rows);
+	void Plot(string label, LuaArray<double> values);
+	void Search(string query);
+	void Copy(string value);
+	void Value(string label, string value);
+	void Value(string label, double value);
+	void Value(string label, bool value);
+}

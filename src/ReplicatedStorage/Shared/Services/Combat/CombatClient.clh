@@ -1,0 +1,37 @@
+#pragma once
+#include <clpp/roblox.clh>
+
+struct CombatClient {
+	const Players players = GetService<Players>();
+	Player me;
+	const int ATTACK_INTERVAL = 0.45;
+	const float LOCAL_HITBOX_LIFE = 0.16;
+	const int HITBOX_WIDTH = 5;
+	const int HITBOX_HEIGHT = 6;
+	const int HITBOX_DEPTH = 4;
+	const float HITBOX_FORWARD = -3.2;
+	const float HITBOX_TRANSPARENCY = 0.7;
+	const int HITBOX_COLOR_R = 1;
+	const float HITBOX_COLOR_G = 0.45;
+	const float HITBOX_COLOR_B = 0.2;
+	const int MAX_COMBO = 4;
+	const string LOCAL_HITBOX_NAME = "CombatHitboxLocal";
+	int ComboStage = 0;
+	double LastHit = 0;
+	int EntityId = 0;
+	int Health = 100;
+
+	const bool SetupPlayerCombat();
+	const bool BindCharacter();
+	const bool BindCombatInput();
+	const bool BindCombatNet();
+	const bool OnCharacterSpawned(Model character);
+	const bool IsAttackInput(InputObject input, bool gameProcessed);
+	const bool OnAttackInput(InputObject input, bool gameProcessed);
+	const bool OnCombatHello(int entityId, int health);
+	const bool OnHitReceived(Player attacker, Player victim, int damage, int comboStage);
+	const bool SendAttack();
+	const bool SpawnLocalHitbox();
+	const CFrame ComposeHitboxCFrame(BasePart rootPart);
+	const Part CreateLocalHitboxPart(BasePart rootPart);
+};

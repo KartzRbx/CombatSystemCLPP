@@ -1,0 +1,1198 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include <clpp/libs/roster.clh>
+#include <clpp/libs/hive.clh>
+#include <clpp/libs/sweep.clh>
+#include <clpp/libs/spark.clh>
+#include <clpp/libs/ward.clh>
+#include <clpp/libs/axiom.clh>
+#include <clpp/libs/mint.clh>
+#include <clpp/libs/coil.clh>
+#include <clpp/libs/trace.clh>
+#include <clpp/libs/arrayindexer.clh>
+#include <clpp/libs/promise.clh>
+#include <clpp/libs/flare.clh>
+#include <clpp/libs/net.clh>
+#include <clpp/libs/keep.clh>
+#include <clpp/libs/echo.clh>
+#include <clpp/libs/ember.clh>
+#include <clpp/libs/helm.clh>
+#include <clpp/libs/lens.clh>
+#include <clpp/libs/gleam.clh>
+#include <clpp/libs/occlude.clh>
+#include <clpp/libs/guide.clh>
+#include "LibBench.clh"
+
+const bool LibBench::Report(string name, double started, bool ok) {
+	guard (@this && name) else {
+		return false;
+	}
+
+	double elapsed = tick() - started;
+	double elapsedMs = elapsed * 1000;
+	post("[LibBench] " .: name .: " " .: to_string(elapsedMs) .: " ms ok=" .: to_string(ok));
+	return ok;
+}
+
+const bool LibBench::OnSparkHit() {
+	guard (@this) else {
+		return false;
+	}
+
+	@SparkHits += 1;
+	return true;
+}
+
+const bool LibBench::OnPromiseFail() {
+	guard (@this) else {
+		return false;
+	}
+
+	@WorkSink += 1;
+	return true;
+}
+
+const bool LibBench::OnLensDraw() {
+	guard (@this) else {
+		return false;
+	}
+
+	Lens.Text("LibBench");
+	Lens.Value("sink", @WorkSink);
+	return true;
+}
+
+const Player LibBench::FirstPlayer() {
+	guard (@this) else {
+		return null;
+	}
+
+	Player found = null;
+	for (Player candidate in @players.GetPlayers()) {
+		if (!found) {
+			found = candidate;
+		}
+	}
+	return found;
+}
+
+const bool LibBench::BenchRosterPush() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		list.Push(i);
+		i += 1;
+	}
+	@WorkSink = list.Length();
+	return @WorkSink == @HOT_ITERS;
+}
+
+const bool LibBench::BenchRosterSetGet() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster map = Roster.New();
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		map.Set(i, i);
+		i += 1;
+	}
+	i = 0;
+	int sum = 0;
+	while (i < @HOT_ITERS) {
+		sum = sum + map.Get(i);
+		i += 1;
+	}
+	@WorkSink = sum;
+	return map.Has(@HOT_ITERS - 1);
+}
+
+const bool LibBench::BenchRosterFind() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	int i = 0;
+	while (i < @MID_ITERS) {
+		list.Push(i);
+		i += 1;
+	}
+	int found = list.Find(@MID_ITERS - 1);
+	@WorkSink = found;
+	return found >= 0;
+}
+
+const bool LibBench::BenchRosterHas() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster map = Roster.New();
+	map.Set("hp", 100);
+	map.Set("atk", 8);
+	return map.Has("hp") && map.Has("atk");
+}
+
+const bool LibBench::BenchRosterClone() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	int i = 0;
+	while (i < @MID_ITERS) {
+		list.Push(i);
+		i += 1;
+	}
+	Roster copy = list.Clone();
+	@WorkSink = copy.Length();
+	return @WorkSink == @MID_ITERS;
+}
+
+const bool LibBench::BenchRosterPack() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	list.Push(1);
+	list.Push(2);
+	list.Push(3);
+	buffer packed = list.Pack();
+	auto unpacked = Roster.Unpack(packed);
+	guard (unpacked) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchRosterClear() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	int i = 0;
+	while (i < @MID_ITERS) {
+		list.Push(i);
+		i += 1;
+	}
+	list.Clear();
+	return list.IsEmpty();
+}
+
+const bool LibBench::BenchRosterSlice() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	int i = 0;
+	while (i < @MID_ITERS) {
+		list.Push(i);
+		i += 1;
+	}
+	Roster sliced = list.Slice(1, 8);
+	@WorkSink = sliced.Length();
+	return @WorkSink > 0;
+}
+
+const bool LibBench::BenchRosterConcat() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster left = Roster.New();
+	Roster right = Roster.New();
+	left.Push(1);
+	right.Push(2);
+	Roster joined = left.Concat(right);
+	@WorkSink = joined.Length();
+	return @WorkSink >= 2;
+}
+
+const bool LibBench::BenchRosterUnique() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	list.Push(1);
+	list.Push(1);
+	list.Push(2);
+	Roster unique = list.Unique();
+	@WorkSink = unique.Length();
+	return @WorkSink == 2;
+}
+
+const bool LibBench::BenchRosterReverse() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	list.Push(1);
+	list.Push(2);
+	list.Push(3);
+	Roster reversed = list.Reverse();
+	@WorkSink = reversed.Length();
+	return @WorkSink == 3;
+}
+
+const bool LibBench::BenchRosterPopShift() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	list.Push(1);
+	list.Push(2);
+	list.Push(3);
+	list.Pop();
+	list.Shift();
+	@WorkSink = list.Length();
+	return @WorkSink == 1;
+}
+
+const bool LibBench::BenchRosterDeepClone() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	int i = 0;
+	while (i < @LIGHT_ITERS) {
+		list.Push(i);
+		i += 1;
+	}
+	Roster copy = list.DeepClone();
+	@WorkSink = copy.Length();
+	return @WorkSink == @LIGHT_ITERS;
+}
+
+const bool LibBench::BenchRosterKeys() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster map = Roster.New();
+	map.Set("hp", 100);
+	map.Set("atk", 8);
+	Roster keys = map.Keys();
+	Roster values = map.Values();
+	@WorkSink = keys.Length() + values.Length();
+	return @WorkSink > 0;
+}
+
+const bool LibBench::BenchHiveSetGet() {
+	guard (@this) else {
+		return false;
+	}
+
+	auto world = PlayerECS.New();
+	int i = 1;
+	while (i <= @HOT_ITERS) {
+		world.Set(i, PlayerECS.Health, i);
+		i += 1;
+	}
+	int sum = 0;
+	i = 1;
+	while (i <= @HOT_ITERS) {
+		sum = sum + world.Get(i, PlayerECS.Health);
+		i += 1;
+	}
+	@WorkSink = sum;
+	return sum > 0;
+}
+
+const bool LibBench::BenchHiveManyEntities() {
+	guard (@this) else {
+		return false;
+	}
+
+	auto world = PlayerECS.New();
+	int i = 1;
+	while (i <= @MID_ITERS) {
+		world.Set(i, PlayerECS.Fighter, i);
+		world.Set(i, PlayerECS.Alive, 1);
+		i += 1;
+	}
+	@WorkSink = i;
+	return true;
+}
+
+const bool LibBench::BenchHiveRemove() {
+	guard (@this) else {
+		return false;
+	}
+
+	auto world = PlayerECS.New();
+	int i = 1;
+	while (i <= @MID_ITERS) {
+		world.Set(i, PlayerECS.Combo, 1);
+		world.Remove(i, PlayerECS.Combo);
+		i += 1;
+	}
+	@WorkSink = i;
+	return true;
+}
+
+const bool LibBench::BenchHiveSnapshot() {
+	guard (@this) else {
+		return false;
+	}
+
+	auto world = PlayerECS.New();
+	int i = 1;
+	while (i <= @LIGHT_ITERS) {
+		world.Set(i, PlayerECS.Health, i);
+		i += 1;
+	}
+	buffer shot = world.Snapshot(PlayerECS.Health);
+	guard (shot) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchSweepAddDestroy() {
+	guard (@this) else {
+		return false;
+	}
+
+	Sweep sweep = Sweep.New();
+	int i = 0;
+	while (i < @LIGHT_ITERS) {
+		Part part = new Part();
+		part.Name = "LibBenchPart";
+		sweep.Add(part, "Destroy");
+		i += 1;
+	}
+	sweep.Cleanup();
+	return true;
+}
+
+const bool LibBench::BenchSweepCleanup() {
+	guard (@this) else {
+		return false;
+	}
+
+	Sweep sweep = Sweep.New();
+	int i = 0;
+	while (i < @MID_ITERS) {
+		sweep.Add(func () {
+			return;
+		}, true);
+		i += 1;
+	}
+	sweep.Destroy();
+	return true;
+}
+
+const bool LibBench::BenchSparkFire() {
+	guard (@this) else {
+		return false;
+	}
+
+	@SparkHits = 0;
+	Spark bus = Spark.New();
+	bus~>Connect(func () {
+		@this.OnSparkHit();
+	});
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		bus.Fire();
+		i += 1;
+	}
+	bus.Destroy();
+	return @SparkHits == @HOT_ITERS;
+}
+
+const bool LibBench::BenchSparkOnce() {
+	guard (@this) else {
+		return false;
+	}
+
+	@SparkHits = 0;
+	Spark bus = Spark.New();
+	bus.Once(func () {
+		@this.OnSparkHit();
+	});
+	bus.Fire();
+	bus.Fire();
+	bus.Destroy();
+	return @SparkHits == 1;
+}
+
+const bool LibBench::BenchSparkDisconnect() {
+	guard (@this) else {
+		return false;
+	}
+
+	Spark bus = Spark.New();
+	bus~>Connect(func () {
+		@this.OnSparkHit();
+	});
+	bus.DisconnectAll();
+	bus.Fire();
+	bus.Destroy();
+	return true;
+}
+
+const bool LibBench::BenchWardAllow() {
+	guard (@this) else {
+		return false;
+	}
+
+	Player player = @this.FirstPlayer();
+	guard (player) else {
+		return true;
+	}
+
+	int i = 0;
+	int allowed = 0;
+	while (i < @MID_ITERS) {
+		if (Ward.Allow(player, "libbench", 120, 240)) {
+			allowed += 1;
+		}
+		i += 1;
+	}
+	@WorkSink = allowed;
+	Ward.Clear(player);
+	return allowed > 0;
+}
+
+const bool LibBench::BenchWardPacket() {
+	guard (@this) else {
+		return false;
+	}
+
+	Player player = @this.FirstPlayer();
+	guard (player) else {
+		return true;
+	}
+
+	bool ok = Ward.Packet(player, 64);
+	bool reject = !Ward.Packet(player, 999999);
+	Ward.Clear(player);
+	return ok && reject;
+}
+
+const bool LibBench::BenchWardGrace() {
+	guard (@this) else {
+		return false;
+	}
+
+	Player player = @this.FirstPlayer();
+	guard (player) else {
+		return true;
+	}
+
+	Ward.Grace(player, 2);
+	int strikes = Ward.Strikes(player);
+	Ward.Clear(player);
+	return strikes >= 0;
+}
+
+const bool LibBench::BenchAxiomScalar() {
+	guard (@this) else {
+		return false;
+	}
+
+	double acc = 0;
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		acc = acc + Axiom.Clamp(i, 0, 100);
+		acc = acc + Axiom.Map(i, 0, @HOT_ITERS, 0, 1);
+		i += 1;
+	}
+	@WorkSink = Axiom.Round(acc);
+	return Axiom.IsFinite(acc);
+}
+
+const bool LibBench::BenchAxiomLerp() {
+	guard (@this) else {
+		return false;
+	}
+
+	double acc = 0;
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		acc = acc + Axiom.Lerp(0, 10, 0.5);
+		i += 1;
+	}
+	@WorkSink = Axiom.Round(acc);
+	return acc > 0;
+}
+
+const bool LibBench::BenchAxiomVector() {
+	guard (@this) else {
+		return false;
+	}
+
+	Vector3 a = Vector3(1, 0, 0);
+	Vector3 b = Vector3(0, 1, 0);
+	double acc = 0;
+	int i = 0;
+	while (i < @MID_ITERS) {
+		Vector3 mixed = Axiom.LerpVector3(a, b, 0.25);
+		acc = acc + Axiom.Distance(a, mixed);
+		i += 1;
+	}
+	@WorkSink = Axiom.Round(acc);
+	return acc > 0;
+}
+
+const bool LibBench::BenchAxiomEase() {
+	guard (@this) else {
+		return false;
+	}
+
+	double acc = 0;
+	int i = 0;
+	while (i < @MID_ITERS) {
+		acc = acc + Axiom.InOutQuad(0.35);
+		acc = acc + Axiom.OutCubic(0.35);
+		i += 1;
+	}
+	@WorkSink = Axiom.Round(acc * 100);
+	return acc > 0;
+}
+
+const bool LibBench::BenchAxiomNoise() {
+	guard (@this) else {
+		return false;
+	}
+
+	double acc = 0;
+	int i = 0;
+	while (i < @MID_ITERS) {
+		acc = acc + Axiom.Value1(i);
+		i += 1;
+	}
+	@WorkSink = Axiom.Round(acc);
+	return Axiom.IsFinite(acc);
+}
+
+const bool LibBench::BenchAxiomWrap() {
+	guard (@this) else {
+		return false;
+	}
+
+	double acc = 0;
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		acc = acc + Axiom.Wrap(i, 0, 10);
+		acc = acc + Axiom.Saturate(i * 0.01);
+		i += 1;
+	}
+	@WorkSink = Axiom.Round(acc);
+	return Axiom.IsFinite(acc);
+}
+
+const bool LibBench::BenchAxiomTrig() {
+	guard (@this) else {
+		return false;
+	}
+
+	double acc = 0;
+	int i = 0;
+	while (i < @MID_ITERS) {
+		acc = acc + Axiom.Sin(i);
+		acc = acc + Axiom.Cos(i);
+		i += 1;
+	}
+	@WorkSink = Axiom.Round(acc);
+	return Axiom.IsFinite(acc);
+}
+
+const bool LibBench::BenchAxiomGeometry() {
+	guard (@this) else {
+		return false;
+	}
+
+	Vector3 point = Vector3(1, 1, 1);
+	Vector3 min = Vector3(0, 0, 0);
+	Vector3 max = Vector3(2, 2, 2);
+	int i = 0;
+	int hits = 0;
+	while (i < @MID_ITERS) {
+		if (Axiom.AabbContains(point, min, max)) {
+			hits += 1;
+		}
+		if (Axiom.SphereContains(point, Vector3(0, 0, 0), 4)) {
+			hits += 1;
+		}
+		i += 1;
+	}
+	@WorkSink = hits;
+	return hits > 0;
+}
+
+const bool LibBench::BenchAxiomColor() {
+	guard (@this) else {
+		return false;
+	}
+
+	Color3 mixed = Axiom.FromHSV(0.5, 1, 1);
+	Color3 other = Axiom.LerpColor3(mixed, Color3(1, 1, 1), 0.25);
+	guard (other) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchMintCompact() {
+	guard (@this) else {
+		return false;
+	}
+
+	string last = "";
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		last = Mint.Compact(i * 1000);
+		i += 1;
+	}
+	guard (last) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchMintGroup() {
+	guard (@this) else {
+		return false;
+	}
+
+	string last = Mint.Group(1234567);
+	string pct = Mint.Percent(0.25);
+	guard (last && pct) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchMintFrom() {
+	guard (@this) else {
+		return false;
+	}
+
+	double value = Mint.From("12.5K");
+	@WorkSink = Axiom.Round(value);
+	return value > 0;
+}
+
+const bool LibBench::BenchMintScientific() {
+	guard (@this) else {
+		return false;
+	}
+
+	string last = Mint.Scientific(1234567);
+	guard (last) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchMintComma() {
+	guard (@this) else {
+		return false;
+	}
+
+	string last = Mint.Comma(1234567);
+	guard (last) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchCoilStep() {
+	guard (@this) else {
+		return false;
+	}
+
+	Coil spring = Coil.New(1, 8, 0);
+	spring.Set(10);
+	int i = 0;
+	while (i < @MID_ITERS) {
+		spring.Step(0.016);
+		i += 1;
+	}
+	auto pos = spring.Get();
+	guard (pos) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchCoilVector() {
+	guard (@this) else {
+		return false;
+	}
+
+	Coil spring = Coil.Vector(0.7, 6, Vector3(0, 0, 0));
+	spring.Set(Vector3(10, 2, 0));
+	int i = 0;
+	while (i < @LIGHT_ITERS) {
+		spring.Step(0.016);
+		i += 1;
+	}
+	return true;
+}
+
+const bool LibBench::BenchCoilImpulse() {
+	guard (@this) else {
+		return false;
+	}
+
+	Coil spring = Coil.New(1, 8, 0);
+	spring.Impulse(12);
+	spring.Step(0.016);
+	return true;
+}
+
+const bool LibBench::BenchCoilColor() {
+	guard (@this) else {
+		return false;
+	}
+
+	Coil spring = Coil.Color(0.8, 6, Color3(0, 0, 0));
+	spring.Set(Color3(1, 0.2, 0.2));
+	spring.Step(0.016);
+	return true;
+}
+
+const bool LibBench::BenchTraceDisplay() {
+	guard (@this) else {
+		return false;
+	}
+
+	Roster list = Roster.New();
+	list.Push("a");
+	list.Push(1);
+	string dump = Trace.Display(list);
+	guard (dump) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchTraceBuilder() {
+	guard (@this) else {
+		return false;
+	}
+
+	TraceBuilder builder = Trace.builder();
+	builder.MaxDepth(4);
+	string dump = builder.Display(1);
+	guard (dump) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchArrayIndexer() {
+	guard (@this) else {
+		return false;
+	}
+
+	ArrayIndexer indexer = ArrayIndexer.New();
+	int i = 0;
+	while (i < @MID_ITERS) {
+		int id = indexer.Acquire();
+		if (!indexer.Has(id)) {
+			return false;
+		}
+		i += 1;
+	}
+	return true;
+}
+
+const bool LibBench::BenchArrayIndexerRelease() {
+	guard (@this) else {
+		return false;
+	}
+
+	ArrayIndexer indexer = ArrayIndexer.New();
+	int i = 0;
+	while (i < @MID_ITERS) {
+		int id = indexer.Acquire();
+		indexer.Release(id);
+		i += 1;
+	}
+	return true;
+}
+
+const bool LibBench::BenchPromiseResolve() {
+	guard (@this) else {
+		return false;
+	}
+
+	Promise job = Promise.resolve(1);
+	guard (job) else {
+		return false;
+	}
+
+	string status = job.GetStatus();
+	guard (status) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchPromiseReject() {
+	guard (@this) else {
+		return false;
+	}
+
+	Promise job = Promise.reject("libbench");
+	job.Catch(func () {
+		@this.OnPromiseFail();
+	});
+	return true;
+}
+
+const bool LibBench::BenchFlareCursor() {
+	guard (@this) else {
+		return false;
+	}
+
+	int i = 0;
+	int last = 0;
+	while (i < @MID_ITERS) {
+		auto cursor = Flare.cursor(32);
+		Flare.writei32(cursor, i);
+		i += 1;
+		last = i;
+	}
+	@WorkSink = last;
+	return last == @MID_ITERS;
+}
+
+const bool LibBench::BenchFlareWriteTypes() {
+	guard (@this) else {
+		return false;
+	}
+
+	int i = 0;
+	while (i < @MID_ITERS) {
+		auto cursor = Flare.cursor(96);
+		Flare.writeu8(cursor, 1);
+		Flare.writei32(cursor, i);
+		Flare.writef32(cursor, 1.5);
+		Flare.writebool(cursor, true);
+		Flare.writestring(cursor, "x");
+		Flare.writeVector3(cursor, Vector3(1, 2, 3));
+		i += 1;
+	}
+	@WorkSink = i;
+	return true;
+}
+
+const bool LibBench::BenchNetEvent() {
+	guard (@this) else {
+		return false;
+	}
+
+	NetEvent bus = Net.Event("LibBenchPing");
+	guard (bus) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchNetFunction() {
+	guard (@this) else {
+		return false;
+	}
+
+	NetFunction remote = Net.Function("LibBenchQuery");
+	guard (remote) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchKeepWait() {
+	guard (@this) else {
+		return false;
+	}
+
+	Player player = @this.FirstPlayer();
+	guard (player) else {
+		return true;
+	}
+
+	auto data = Keep.Server.Get(player);
+	guard (data) else {
+		return true;
+	}
+	return true;
+}
+
+const bool LibBench::BenchPartCreateDestroy() {
+	guard (@this) else {
+		return false;
+	}
+
+	int i = 0;
+	while (i < @LIGHT_ITERS) {
+		Part part = new Part();
+		part.Name = "LibBenchTemp";
+		part.Destroy();
+		i += 1;
+	}
+	return true;
+}
+
+const bool LibBench::BenchEchoCFrame() {
+	guard (@this) else {
+		return false;
+	}
+
+	int i = 0;
+	while (i < @MID_ITERS) {
+		buffer packed = Echo.WriteCFrame(CFrame(i, 0, 0));
+		CFrame restored = Echo.ReadCFrame(packed);
+		guard (restored) else {
+			return false;
+		}
+		i += 1;
+	}
+	@WorkSink = i;
+	return true;
+}
+
+const bool LibBench::BenchEmberScale() {
+	guard (@this) else {
+		return false;
+	}
+
+	Part part = new Part();
+	part.Name = "LibBenchEmber";
+	int i = 0;
+	while (i < @LIGHT_ITERS) {
+		Ember.Scale(part, 1);
+		i += 1;
+	}
+	part.Destroy();
+	return true;
+}
+
+const bool LibBench::BenchHelmRegistry() {
+	guard (@this) else {
+		return false;
+	}
+
+	HelmRegistry registry = Helm.Registry();
+	guard (registry) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchLensWindow() {
+	guard (@this) else {
+		return false;
+	}
+
+	Lens.Window("LibBench", func () {
+		@this.OnLensDraw();
+	});
+	return true;
+}
+
+const bool LibBench::BenchGleamSource() {
+	guard (@this) else {
+		return false;
+	}
+
+	GleamSource source = Gleam.Source(0);
+	int i = 0;
+	while (i < @HOT_ITERS) {
+		source.Set(i);
+		i += 1;
+	}
+	@WorkSink = source.Get();
+	return @WorkSink == @HOT_ITERS - 1;
+}
+
+const bool LibBench::BenchOccludePosition() {
+	guard (@this) else {
+		return false;
+	}
+
+	Part part = new Part();
+	part.Name = "LibBenchOcclude";
+	Vector3 pos = Occlude.Position(part);
+	part.Destroy();
+	guard (pos) else {
+		return false;
+	}
+	return true;
+}
+
+const bool LibBench::BenchGuideStart() {
+	guard (@this) else {
+		return false;
+	}
+
+	Guide.Start();
+	return true;
+}
+
+const bool LibBench::RunAll() {
+	guard (@this) else {
+		return false;
+	}
+
+	double started = tick();
+	double t = 0;
+
+	t = tick();
+	@this.Report("RosterPush", t, @this.BenchRosterPush());
+	t = tick();
+	@this.Report("RosterSetGet", t, @this.BenchRosterSetGet());
+	t = tick();
+	@this.Report("RosterFind", t, @this.BenchRosterFind());
+	t = tick();
+	@this.Report("RosterHas", t, @this.BenchRosterHas());
+	t = tick();
+	@this.Report("RosterClone", t, @this.BenchRosterClone());
+	t = tick();
+	@this.Report("RosterPack", t, @this.BenchRosterPack());
+	t = tick();
+	@this.Report("RosterClear", t, @this.BenchRosterClear());
+	t = tick();
+	@this.Report("RosterSlice", t, @this.BenchRosterSlice());
+	t = tick();
+	@this.Report("RosterConcat", t, @this.BenchRosterConcat());
+	t = tick();
+	@this.Report("RosterUnique", t, @this.BenchRosterUnique());
+	t = tick();
+	@this.Report("RosterReverse", t, @this.BenchRosterReverse());
+	t = tick();
+	@this.Report("RosterPopShift", t, @this.BenchRosterPopShift());
+	t = tick();
+	@this.Report("RosterDeepClone", t, @this.BenchRosterDeepClone());
+	t = tick();
+	@this.Report("RosterKeys", t, @this.BenchRosterKeys());
+	t = tick();
+	@this.Report("HiveSetGet", t, @this.BenchHiveSetGet());
+	t = tick();
+	@this.Report("HiveManyEntities", t, @this.BenchHiveManyEntities());
+	t = tick();
+	@this.Report("HiveRemove", t, @this.BenchHiveRemove());
+	t = tick();
+	@this.Report("HiveSnapshot", t, @this.BenchHiveSnapshot());
+	t = tick();
+	@this.Report("SweepAddDestroy", t, @this.BenchSweepAddDestroy());
+	t = tick();
+	@this.Report("SweepCleanup", t, @this.BenchSweepCleanup());
+	t = tick();
+	@this.Report("SparkFire", t, @this.BenchSparkFire());
+	t = tick();
+	@this.Report("SparkOnce", t, @this.BenchSparkOnce());
+	t = tick();
+	@this.Report("SparkDisconnect", t, @this.BenchSparkDisconnect());
+	t = tick();
+	@this.Report("WardAllow", t, @this.BenchWardAllow());
+	t = tick();
+	@this.Report("WardPacket", t, @this.BenchWardPacket());
+	t = tick();
+	@this.Report("WardGrace", t, @this.BenchWardGrace());
+	t = tick();
+	@this.Report("AxiomScalar", t, @this.BenchAxiomScalar());
+	t = tick();
+	@this.Report("AxiomLerp", t, @this.BenchAxiomLerp());
+	t = tick();
+	@this.Report("AxiomVector", t, @this.BenchAxiomVector());
+	t = tick();
+	@this.Report("AxiomEase", t, @this.BenchAxiomEase());
+	t = tick();
+	@this.Report("AxiomNoise", t, @this.BenchAxiomNoise());
+	t = tick();
+	@this.Report("AxiomWrap", t, @this.BenchAxiomWrap());
+	t = tick();
+	@this.Report("AxiomTrig", t, @this.BenchAxiomTrig());
+	t = tick();
+	@this.Report("AxiomGeometry", t, @this.BenchAxiomGeometry());
+	t = tick();
+	@this.Report("AxiomColor", t, @this.BenchAxiomColor());
+	t = tick();
+	@this.Report("MintCompact", t, @this.BenchMintCompact());
+	t = tick();
+	@this.Report("MintGroup", t, @this.BenchMintGroup());
+	t = tick();
+	@this.Report("MintFrom", t, @this.BenchMintFrom());
+	t = tick();
+	@this.Report("MintScientific", t, @this.BenchMintScientific());
+	t = tick();
+	@this.Report("MintComma", t, @this.BenchMintComma());
+	t = tick();
+	@this.Report("CoilStep", t, @this.BenchCoilStep());
+	t = tick();
+	@this.Report("CoilVector", t, @this.BenchCoilVector());
+	t = tick();
+	@this.Report("CoilImpulse", t, @this.BenchCoilImpulse());
+	t = tick();
+	@this.Report("CoilColor", t, @this.BenchCoilColor());
+	t = tick();
+	@this.Report("TraceDisplay", t, @this.BenchTraceDisplay());
+	t = tick();
+	@this.Report("TraceBuilder", t, @this.BenchTraceBuilder());
+	t = tick();
+	@this.Report("ArrayIndexer", t, @this.BenchArrayIndexer());
+	t = tick();
+	@this.Report("ArrayIndexerRelease", t, @this.BenchArrayIndexerRelease());
+	t = tick();
+	@this.Report("PromiseResolve", t, @this.BenchPromiseResolve());
+	t = tick();
+	@this.Report("PromiseReject", t, @this.BenchPromiseReject());
+	t = tick();
+	@this.Report("FlareCursor", t, @this.BenchFlareCursor());
+	t = tick();
+	@this.Report("FlareWriteTypes", t, @this.BenchFlareWriteTypes());
+	t = tick();
+	@this.Report("NetEvent", t, @this.BenchNetEvent());
+	t = tick();
+	@this.Report("NetFunction", t, @this.BenchNetFunction());
+	t = tick();
+	@this.Report("KeepWait", t, @this.BenchKeepWait());
+	t = tick();
+	@this.Report("PartCreateDestroy", t, @this.BenchPartCreateDestroy());
+	t = tick();
+	@this.Report("EchoCFrame", t, @this.BenchEchoCFrame());
+	t = tick();
+	@this.Report("EmberScale", t, @this.BenchEmberScale());
+	t = tick();
+	@this.Report("HelmRegistry", t, @this.BenchHelmRegistry());
+	t = tick();
+	@this.Report("LensWindow", t, @this.BenchLensWindow());
+	t = tick();
+	@this.Report("GleamSource", t, @this.BenchGleamSource());
+	t = tick();
+	@this.Report("OccludePosition", t, @this.BenchOccludePosition());
+	t = tick();
+	@this.Report("GuideStart", t, @this.BenchGuideStart());
+	@this.Report("TOTAL", started, true);
+	return true;
+}
+
+void init() {
+	RunService runService = GetService<RunService>();
+	guard (runService.IsStudio()) else {
+		return;
+	}
+
+	spawn {
+		task::wait(1);
+		LibBench::RunAll();
+	};
+}

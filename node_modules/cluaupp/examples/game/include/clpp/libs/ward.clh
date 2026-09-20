@@ -1,0 +1,18 @@
+#pragma once
+
+// Ward — server anti-cheat. Rate-limit remotes, cap packet size, speed strikes.
+// Runtime: CluauppLibs.Ward. Call Ward.Start() once on the server.
+
+namespace Ward {
+	void Start();
+	void WatchMovement();
+	bool Allow(Player player, string channel);
+	bool Allow(Player player, string channel, int maxPerSec);
+	bool Allow(Player player, string channel, int maxPerSec, int burst);
+	bool Packet(Player player, int bytes);
+	bool Packet(Player player, int bytes, int maxBytes);
+	int Strike(Player player, string reason);
+	void Grace(Player player, double seconds);
+	void Clear(Player player);
+	int Strikes(Player player);
+}

@@ -1,0 +1,104 @@
+#pragma once
+#include <clpp/roblox.clh>
+#include <clpp/libs/roster.clh>
+#include <clpp/libs/hive.clh>
+#include <clpp/libs/sweep.clh>
+#include <clpp/libs/spark.clh>
+#include <clpp/libs/ward.clh>
+#include <clpp/libs/axiom.clh>
+#include <clpp/libs/mint.clh>
+#include <clpp/libs/coil.clh>
+#include <clpp/libs/trace.clh>
+#include <clpp/libs/arrayindexer.clh>
+#include <clpp/libs/promise.clh>
+#include <clpp/libs/flare.clh>
+#include <clpp/libs/net.clh>
+#include <clpp/libs/keep.clh>
+#include <clpp/libs/echo.clh>
+#include <clpp/libs/ember.clh>
+#include <clpp/libs/helm.clh>
+#include <clpp/libs/lens.clh>
+#include <clpp/libs/gleam.clh>
+#include <clpp/libs/occlude.clh>
+#include <clpp/libs/guide.clh>
+#include "ReplicatedStorage/Shared/Services/Combat/PlayerECS.clh"
+
+struct LibBench {
+	const int HOT_ITERS = 2500;
+	const int MID_ITERS = 400;
+	const int LIGHT_ITERS = 80;
+	Players players = GetService<Players>();
+	int SparkHits = 0;
+	int WorkSink = 0;
+
+	const bool RunAll();
+	const bool Report(string name, double started, bool ok);
+	const bool OnSparkHit();
+	const bool OnPromiseFail();
+	const bool OnLensDraw();
+	const Player FirstPlayer();
+
+	const bool BenchRosterPush();
+	const bool BenchRosterSetGet();
+	const bool BenchRosterFind();
+	const bool BenchRosterHas();
+	const bool BenchRosterClone();
+	const bool BenchRosterPack();
+	const bool BenchRosterClear();
+	const bool BenchRosterSlice();
+	const bool BenchRosterConcat();
+	const bool BenchRosterUnique();
+	const bool BenchRosterReverse();
+	const bool BenchRosterPopShift();
+	const bool BenchRosterDeepClone();
+	const bool BenchRosterKeys();
+	const bool BenchHiveSetGet();
+	const bool BenchHiveManyEntities();
+	const bool BenchHiveRemove();
+	const bool BenchHiveSnapshot();
+	const bool BenchSweepAddDestroy();
+	const bool BenchSweepCleanup();
+	const bool BenchSparkFire();
+	const bool BenchSparkOnce();
+	const bool BenchSparkDisconnect();
+	const bool BenchWardAllow();
+	const bool BenchWardPacket();
+	const bool BenchWardGrace();
+	const bool BenchAxiomScalar();
+	const bool BenchAxiomLerp();
+	const bool BenchAxiomVector();
+	const bool BenchAxiomEase();
+	const bool BenchAxiomNoise();
+	const bool BenchAxiomWrap();
+	const bool BenchAxiomTrig();
+	const bool BenchAxiomGeometry();
+	const bool BenchAxiomColor();
+	const bool BenchMintCompact();
+	const bool BenchMintGroup();
+	const bool BenchMintFrom();
+	const bool BenchMintScientific();
+	const bool BenchMintComma();
+	const bool BenchCoilStep();
+	const bool BenchCoilVector();
+	const bool BenchCoilImpulse();
+	const bool BenchCoilColor();
+	const bool BenchTraceDisplay();
+	const bool BenchTraceBuilder();
+	const bool BenchArrayIndexer();
+	const bool BenchArrayIndexerRelease();
+	const bool BenchPromiseResolve();
+	const bool BenchPromiseReject();
+	const bool BenchFlareCursor();
+	const bool BenchFlareWriteTypes();
+	const bool BenchNetEvent();
+	const bool BenchNetFunction();
+	const bool BenchKeepWait();
+	const bool BenchPartCreateDestroy();
+	const bool BenchEchoCFrame();
+	const bool BenchEmberScale();
+	const bool BenchHelmRegistry();
+	const bool BenchLensWindow();
+	const bool BenchGleamSource();
+	const bool BenchOccludePosition();
+	const bool BenchGuideStart();
+};

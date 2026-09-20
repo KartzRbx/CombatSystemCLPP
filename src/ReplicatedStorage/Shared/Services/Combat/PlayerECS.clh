@@ -1,0 +1,12 @@
+// cluaupp generated — do not edit. Change the .hive schema and run cluaupp build.
+#pragma once
+
+#include <clpp/libs/hive.clh>
+namespace PlayerECS {
+	const int Fighter = 1;
+	const int Health = 2;
+	const int Cooldown = 3;
+	const int Combo = 4;
+	const int Alive = 5;
+	auto New();
+}

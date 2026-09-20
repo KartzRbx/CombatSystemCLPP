@@ -1,0 +1,8 @@
+opt name = Net
+
+packet AttackIntent() from Client
+packet CombatReady() from Client
+packet CombatHello(i32 entityId, i32 health) from Server
+packet HitResult(Player attacker, Player victim, i32 damage, i32 combo) from Server
+packet ClickIntent() from Client
+packet ClickAck(i32 points, i32 damage) from Server

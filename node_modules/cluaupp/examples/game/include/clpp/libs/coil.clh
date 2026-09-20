@@ -1,0 +1,37 @@
+#pragma once
+
+// Coil — Fraktality damped spring. Frequency is Hz (not rad/s).
+// Gleam.Spring: Coil.new, :Set, :Get, :Step.
+// Coil.new also accepts Vector3 / UDim2 / Color3 (component-wise). Helpers: Coil.Vector / UDim / Color.
+// Step: omega=0 is a no-op; dt >= 1s (or decay envelope ~0) snaps to Goal.
+
+struct Coil {
+	double Damping;
+	double Frequency;
+	auto Goal;
+	auto Position;
+	auto Velocity;
+	static Coil New(double dampingRatio, double frequency, double position);
+	static Coil New(double dampingRatio, double frequency, Vector3 position);
+	static Coil New(double dampingRatio, double frequency, UDim2 position);
+	static Coil New(double dampingRatio, double frequency, Color3 position);
+	static Coil Vector(double dampingRatio, double frequency, Vector3 position);
+	static Coil UDim(double dampingRatio, double frequency, UDim2 position);
+	static Coil UDim2(double dampingRatio, double frequency, UDim2 position);
+	static Coil Color(double dampingRatio, double frequency, Color3 position);
+	void Set(double goal);
+	void Set(Vector3 goal);
+	void Set(UDim2 goal);
+	void Set(Color3 goal);
+	void SetGoal(double target);
+	void SetGoal(Vector3 target);
+	void SetGoal(UDim2 target);
+	void SetGoal(Color3 target);
+	auto Get();
+	void Step(double dt);
+	void Impulse(double velocity);
+	void Impulse(Vector3 velocity);
+	void Impulse(UDim2 velocity);
+	void Impulse(Color3 velocity);
+	auto Update(double dt);
+};

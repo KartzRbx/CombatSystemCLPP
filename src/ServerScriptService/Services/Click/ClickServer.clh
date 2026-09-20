@@ -1,0 +1,17 @@
+#pragma once
+#include <clpp/roblox.clh>
+#include <clpp/libs/keep.clh>
+#include "ReplicatedStorage/Shared/Net/Net.clh"
+
+struct ClickServer {
+	const int CLICK_POINTS = 1;
+	const int CLICK_DAMAGE = 1;
+	const int CLICK_RATE = 20;
+	const int CLICK_BURST = 40;
+	const string CLICK_CHANNEL = "click";
+
+	const bool BindClickRemote();
+	const bool OnClick(Player player);
+	const bool GrantClick(Player player);
+	const bool BroadcastClickAck(Player player, int points, int damage);
+};

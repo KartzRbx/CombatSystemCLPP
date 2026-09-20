@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docs · Cluaupp V2 Specification</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f0f14; color: #c9d1d9; padding: 40px; line-height: 1.6; }
+        h1, h2, h3 { color: #58a6ff; border-bottom: 1px solid #21262d; padding-bottom: 8px; }
+        code { background-color: #161b22; padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', Courier, monospace; color: #ff7b72; }
+        pre { background-color: #161b22; padding: 16px; border-radius: 8px; border: 1px solid #30363d; overflow-x: auto; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #1f242c; border: 1px solid #30363d; padding: 20px; border-radius: 8px; }
+        .badge { background-color: #238636; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Cluaupp Compiler Core V2 <span class="badge">TypeScript Migration</span></h1>
+    <p>Documentação da API atualizada para o novo Pipeline de Transpilação baseado em Coletores Estruturados.</p>
+
+    <h2>A Nova Ordem Crítica do Output</h2>
+    <p>O compilador Cluaupp agora garante deterministicamente um arquivo Luau limpo, agrupado por blocos ordenados:</p>
+    <pre>1. game:GetService() Clientes Automatizados
+2. Módulos Locais Resolvidos via require() do Rojo
+3. Definições e Aliases de Tipos Estritos
+4. Declarações Globais de Constantes Imutáveis
+5. Lógica das Funções e Ciclos do Script</pre>
+
+    <h2>Mudanças Importantes na Tabela de Tipos</h2>
+    <div class="grid">
+        <div class="card">
+            <h3>Como era (Cluaupp V1)</h3>
+            <ul>
+                <li>Uso de tipos primitivos crus: <code>string</code></li>
+                <li>Injeção manual de variáveis de serviço globais</li>
+                <li>Geração de código procedural inline desordenada</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>Como é Agora (Cluaupp V2)</h3>
+            <ul>
+                <li>Suporte a tipos idiomáticos: <code>std::string</code> e <code>std::string_view</code> viram <code>string</code></li>
+                <li>Injeção automática pelo analisador ao ler <code>GetService&lt;T&gt;()</code></li>
+                <li>Pós-processamento automático nativo com <code>StyLua</code> e <code>Luau-Analyze</code></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

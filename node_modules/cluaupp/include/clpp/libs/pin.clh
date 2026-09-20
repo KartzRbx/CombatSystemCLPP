@@ -1,0 +1,28 @@
+#pragma once
+
+struct PinOptions {
+	string Name;
+	UDim2 Size;
+	Vector3 StudsOffset;
+	Vector3 StudsOffsetWorldSpace;
+	double MaxDistance;
+	double MinDistance;
+	bool AlwaysOnTop;
+	double LightInfluence;
+	Instance Parent;
+	bool Occlude;
+	bool Fade;
+	bool Scale;
+};
+
+struct Pin {
+	static Pin new_(Instance adornee, GuiObject gui);
+	static Pin new_(Instance adornee, GuiObject gui, PinOptions options);
+	void SetText(string text);
+	void SetEnabled(bool enabled);
+	void SetMaxDistance(double distance);
+	void Destroy();
+	Instance Adornee;
+	GuiObject Gui;
+	BillboardGui Billboard;
+};

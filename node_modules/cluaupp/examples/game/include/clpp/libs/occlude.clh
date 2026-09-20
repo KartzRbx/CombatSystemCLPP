@@ -1,0 +1,15 @@
+#pragma once
+
+// Occlude — camera → adornee raycast. Pin uses this when Occlude = true.
+
+namespace Occlude {
+	Vector3 Position(Instance adornee);
+	RaycastResult Raycast(WorldRoot world, Camera camera, Instance adornee);
+	RaycastResult Raycast(WorldRoot world, Camera camera, Instance adornee, RaycastParams params);
+	bool IsOccluded(WorldRoot world, Camera camera, Instance adornee);
+	bool IsOccluded(WorldRoot world, Camera camera, Instance adornee, RaycastParams params);
+	bool IsOccluded(WorldRoot world, Camera camera, Instance adornee, RaycastParams params, double slack);
+	bool Visible(WorldRoot world, Camera camera, Instance adornee);
+	bool Visible(WorldRoot world, Camera camera, Instance adornee, RaycastParams params);
+	bool Visible(WorldRoot world, Camera camera, Instance adornee, RaycastParams params, double slack);
+}

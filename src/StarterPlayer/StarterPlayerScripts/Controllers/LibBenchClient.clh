@@ -1,0 +1,71 @@
+#pragma once
+#include <clpp/roblox.clh>
+#include <clpp/libs/gleam.clh>
+#include <clpp/libs/bloom.clh>
+#include <clpp/libs/pin.clh>
+#include <clpp/libs/stage.clh>
+#include <clpp/libs/crest.clh>
+#include <clpp/libs/lens.clh>
+#include <clpp/libs/ember.clh>
+#include <clpp/libs/echo.clh>
+#include <clpp/libs/guide.clh>
+#include <clpp/libs/occlude.clh>
+#include <clpp/libs/helm.clh>
+#include <clpp/libs/mint.clh>
+#include <clpp/libs/axiom.clh>
+#include <clpp/libs/coil.clh>
+#include <clpp/libs/roster.clh>
+#include <clpp/libs/spark.clh>
+#include <clpp/libs/sweep.clh>
+#include <clpp/libs/promise.clh>
+#include <clpp/libs/flare.clh>
+#include <clpp/libs/arrayindexer.clh>
+#include <clpp/libs/keep.clh>
+#include <clpp/libs/net.clh>
+#include <clpp/libs/trace.clh>
+
+struct LibBenchClient {
+	const int HOT_ITERS = 2500;
+	const int MID_ITERS = 400;
+	const int LIGHT_ITERS = 80;
+	Players players = GetService<Players>();
+	Player me;
+	int SparkHits = 0;
+	int WorkSink = 0;
+
+	const bool RunAll();
+	const bool Report(string name, double started, bool ok);
+	const bool OnSparkHit();
+	const bool OnLensDraw();
+	const bool OnGleamEffect();
+
+	const bool BenchGleamSource();
+	const bool BenchGleamCreate();
+	const bool BenchGleamMount();
+	const bool BenchGleamSpring();
+	const bool BenchBloomPlay();
+	const bool BenchBloomFade();
+	const bool BenchBloomPress();
+	const bool BenchPinCreate();
+	const bool BenchStageAttach();
+	const bool BenchCrestCreate();
+	const bool BenchLensInit();
+	const bool BenchLensWindow();
+	const bool BenchEmberScale();
+	const bool BenchEchoCFrame();
+	const bool BenchGuideStart();
+	const bool BenchOccludePosition();
+	const bool BenchHelmRegistry();
+	const bool BenchMintCompact();
+	const bool BenchAxiomLerp();
+	const bool BenchCoilStep();
+	const bool BenchRosterPush();
+	const bool BenchSparkFire();
+	const bool BenchSweepCleanup();
+	const bool BenchPromiseResolve();
+	const bool BenchFlareCursor();
+	const bool BenchArrayIndexer();
+	const bool BenchKeepClient();
+	const bool BenchNetEvent();
+	const bool BenchTraceDisplay();
+};

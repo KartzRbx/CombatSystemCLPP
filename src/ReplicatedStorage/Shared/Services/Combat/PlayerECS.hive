@@ -1,0 +1,7 @@
+opt name = PlayerECS
+
+component Fighter { i32 userId }
+component Health { i32 current, i32 max }
+component Cooldown { f64 lastHit }
+component Combo { i32 stage }
+component Alive { i32 flag }

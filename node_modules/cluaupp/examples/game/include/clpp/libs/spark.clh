@@ -1,0 +1,28 @@
+#pragma once
+
+// Spark — engine-grade yield-safe signal. ~>Connect is Sweep-owned.
+// O(1) Disconnect, pooled runners, reentrant Fire queue, ConnectParallel.
+
+struct SparkConnection {
+	bool Connected;
+	void Disconnect();
+	void Destroy();
+};
+
+struct Spark {
+	static Spark New();
+	static Spark Wrap(RBXScriptSignal rbx);
+	static bool Is(auto obj);
+	void Fire();
+	void FireDeferred();
+	SparkConnection Connect(func fn);
+	SparkConnection ConnectParallel(func fn);
+	SparkConnection Once(func fn);
+	SparkConnection OnceParallel(func fn);
+	SparkConnection ConnectOnce(func fn);
+	void DisconnectAll();
+	LuaArray<SparkConnection> GetConnections();
+	bool IsDestroyed();
+	void Wait();
+	void Destroy();
+};

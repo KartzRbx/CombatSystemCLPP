@@ -1,0 +1,58 @@
+#pragma once
+
+#include <clpp/libs/stage.clh>
+
+struct BloomHandle {
+	GuiObject Instance;
+	void Pause();
+	void Resume();
+	void Destroy();
+};
+
+struct BloomOptions {
+	double Speed;
+	double Size;
+	ColorSequence Gradient;
+	NumberSequence Transparency;
+};
+
+namespace Bloom {
+	const string Shine = "Shine";
+	const string Rainbow = "Rainbow";
+	const string ChromeStroke = "ChromeStroke";
+	const string Grow = "Grow";
+	const string Lift = "Lift";
+	const string Bounce = "Bounce";
+	const string Shrink = "Shrink";
+	const string Punch = "Punch";
+	ColorSequenceKeypoint Stop(double t, Color3 color);
+	ColorSequence Gradient();
+	BloomHandle Play(GuiObject target, string preset);
+	BloomHandle Play(GuiObject target, string preset, BloomOptions options);
+	void Fade(GuiObject element, bool show);
+	void Fade(GuiObject element, bool show, double speed);
+	void Slide(GuiObject element, bool show);
+	void Slide(GuiObject element, bool show, double speed);
+	void Zoom(GuiObject element, bool show);
+	void Zoom(GuiObject element, bool show, double speed);
+	void Bounce(GuiObject element);
+	void Bounce(GuiObject element, double speed);
+	void Hover(GuiObject element);
+	void Hover(GuiObject element, string kind);
+	void Press(GuiObject element);
+	void Press(GuiObject element, string kind);
+	void Ripple(GuiObject element);
+	void Tilt(GuiObject element);
+	void Tilt(GuiObject element, double degrees);
+	void Depth(GuiObject element);
+	void Flip(GuiObject element);
+	void Flip(GuiObject element, double speed);
+	Stage Viewport(GuiObject frame, Instance model);
+	void Type(Frame container, TextLabel label, string text);
+	void Sequence();
+	void FrameSlide(GuiObject element, bool show);
+	void FrameZoom(GuiObject element, bool show);
+	void FrameBounce(GuiObject element);
+	void SetButtonStyle(GuiObject element);
+	void ShowText(Frame container, TextLabel label, string text);
+}

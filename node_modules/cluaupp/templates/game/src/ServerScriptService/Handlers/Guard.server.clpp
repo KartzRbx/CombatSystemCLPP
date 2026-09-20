@@ -1,0 +1,7 @@
+#pragma strict
+#include <clpp/roblox.clh>
+#include <clpp/libs/ward.clh>
+
+void init() {
+	Ward.Start();
+}

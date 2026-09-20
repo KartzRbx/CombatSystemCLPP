@@ -1,0 +1,24 @@
+#pragma once
+
+// evaera/roblox-lua-promise — vendored into CluauppLibs.Promise
+struct Promise {
+	static Promise New(func executor);
+	static Promise resolve(auto value);
+	static Promise reject(string err);
+	static Promise delay(double seconds);
+	static Promise try_(func callback);
+	static Promise all(LuaArray<Promise> list);
+	static Promise race(LuaArray<Promise> list);
+	static Promise retry(func callback, int times);
+	Promise Then(func ok);
+	Promise Catch(func fail);
+	Promise Finally(func callback);
+	Promise andThen(func ok);
+	Promise catch_(func fail);
+	Promise finally(func callback);
+	auto Await();
+	void Cancel();
+	void cancel();
+	string GetStatus();
+	string getStatus();
+};

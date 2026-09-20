@@ -1,0 +1,23 @@
+#pragma once
+
+// Sweep — Cluaupp zelador. Flare sends; Sweep clears.
+// ~> Connect binds to Sweep. Auto-detects Disconnect / Destroy / cancel.
+
+struct Sweep {
+	bool CurrentlyCleaning;
+	static Sweep New();
+	auto Add(auto object);
+	auto Add(auto object, bool callDirectly);
+	auto Add(auto object, string methodName);
+	auto Add(auto object, string methodName, string index);
+	auto AddPromise(auto promise);
+	auto AddPromise(auto promise, string index);
+	Sweep Remove(string index);
+	Sweep RemoveNoClean(string index);
+	auto Get(string index);
+	void Cleanup();
+	void Destroy();
+	RBXScriptConnection LinkToInstance(Instance object);
+	RBXScriptConnection LinkToInstance(Instance object, bool allowMultiple);
+	static bool Is(auto value);
+};

@@ -1,0 +1,111 @@
+#pragma once
+
+#include <clpp/libs/sweep.clh>
+
+struct GleamSource {
+	auto Get();
+	void Set(auto value);
+	void Listen(func fn);
+};
+
+struct GleamAction {};
+
+struct GleamProps {
+	LuaArray<Instance> Children;
+	Instance Parent;
+	string Name;
+	string Text;
+	string PlaceholderText;
+	string Image;
+	bool Visible;
+	bool Active;
+	bool Selectable;
+	bool TextScaled;
+	bool TextWrapped;
+	bool RichText;
+	bool AutoButtonColor;
+	bool ClipsDescendants;
+	bool IgnoreGuiInset;
+	bool ResetOnSpawn;
+	bool Enabled;
+	bool Modal;
+	int ZIndex;
+	int LayoutOrder;
+	int BorderSizePixel;
+	int DisplayOrder;
+	double TextSize;
+	double Rotation;
+	double BackgroundTransparency;
+	double ImageTransparency;
+	double ScrollBarThickness;
+	Vector2 AnchorPoint;
+	UDim2 Size;
+	UDim2 Position;
+	Color3 TextColor3;
+	Color3 BackgroundColor3;
+	Color3 BorderColor3;
+	Color3 ImageColor3;
+	Font FontFace;
+	func Activated;
+	func MouseButton1Click;
+	func MouseButton2Click;
+	func MouseButton1Down;
+	func MouseButton1Up;
+	func MouseEnter;
+	func MouseLeave;
+	func InputBegan;
+	func InputEnded;
+	func AncestryChanged;
+	func Changed;
+	func Focused;
+	func FocusLost;
+};
+
+struct GleamApply {
+	Instance Apply(GleamProps props);
+};
+
+namespace Gleam {
+	GleamSource Source(auto initial);
+	GleamSource Derive(func compute);
+	void Effect(func fn);
+	auto Untrack(func fn);
+	void Batch(func fn);
+	void Cleanup(func fn);
+
+	Instance Create(string className);
+	Instance Create(string className, GleamProps props);
+	TextButton TextButton();
+	TextButton TextButton(GleamProps props);
+	TextLabel TextLabel();
+	TextLabel TextLabel(GleamProps props);
+	Frame Frame();
+	Frame Frame(GleamProps props);
+	ScreenGui ScreenGui();
+	ScreenGui ScreenGui(GleamProps props);
+	ImageLabel ImageLabel();
+	ImageLabel ImageLabel(GleamProps props);
+	ScrollingFrame ScrollingFrame();
+	ScrollingFrame ScrollingFrame(GleamProps props);
+
+	LuaArray<Instance> List();
+	LuaArray<Instance> List(Instance a);
+	LuaArray<Instance> List(Instance a, Instance b);
+	LuaArray<Instance> List(Instance a, Instance b, Instance c);
+
+	func Mount(Instance instance, Instance parent);
+	func Root(func fn);
+
+	GleamSource Show(GleamSource source, func render);
+	GleamSource Switch(GleamSource source, auto map);
+	GleamSource Indexes(GleamSource source, func render);
+	GleamSource Values(GleamSource source, func render);
+
+	GleamSource Spring(GleamSource source);
+	GleamSource Spring(GleamSource source, double speed);
+	GleamSource Spring(GleamSource source, double speed, double damping);
+
+	GleamAction Action(func fn);
+	GleamApply Apply(Instance instance);
+	Instance Apply(Instance instance, GleamProps props);
+}

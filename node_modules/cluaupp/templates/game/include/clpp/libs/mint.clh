@@ -1,0 +1,28 @@
+#pragma once
+
+// Mint — number display. .mint codegen calls:
+//   Mint.Compact(value, { Fraction, Suffixes = { {threshold, label} } })
+//   Mint.Percent(value, fraction)
+//   Mint.Group(value, fraction)
+// Suffixes default to thousand-powers K,M,B,T,Qa,Qi,Sx,Sp,Oc,No,Dc,…Novg. Custom lists are { {threshold, label} }.
+// From parses Group/Compact/Scientific/Percent (commas, suffixes, e-notation). Display only.
+
+namespace Mint {
+	string Group(double value);
+	string Group(double value, int fraction);
+	string Comma(double value);
+	string Compact(double value);
+	string Compact(double value, int digits);
+	string Abbreviate(double value);
+	string Abbreviate(double value, int digits);
+	string Percent(double value);
+	string Percent(double value, int fraction);
+	string Scientific(double value);
+	string Scientific(double value, int fraction);
+	string Format(double value);
+	string To(double value);
+	string To(double value, int fraction);
+	double From(string text);
+	double From(string text, LuaArray<auto> suffixes);
+	LuaArray<auto> Suffixes(LuaArray<string> labels);
+}

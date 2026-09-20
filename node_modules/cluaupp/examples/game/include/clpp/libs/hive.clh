@@ -1,0 +1,20 @@
+#pragma once
+
+struct HiveWorld {
+	int Entity();
+	void Set(int entity, int componentId, auto value);
+	auto Get(int entity, int componentId);
+	void Remove(int entity, int componentId);
+	void Despawn(int entity);
+	bool Has(int entity, int componentId);
+	auto Query();
+	buffer Snapshot(int componentId);
+};
+
+namespace Hive {
+	HiveWorld World();
+	HiveWorld World(auto schema);
+	HiveWorld World(auto schema, bool authoritative);
+	HiveWorld AuthoritativeWorld();
+	HiveWorld AuthoritativeWorld(auto schema);
+}

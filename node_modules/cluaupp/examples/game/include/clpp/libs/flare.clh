@@ -1,0 +1,65 @@
+#pragma once
+
+// Flare — Cluaupp networker (Zap-tight generated packing, QuickNet buffers, ByteNet packets/queries).
+// You do not open remotes. Write src/shared/Net.flare; cluaupp build generates Net.clh + Net.luau.
+//
+// packet Hit(Player target, i32 damage) from Client
+// query GetCoins() -> i32
+//
+// Then: Net.Hit.FireServer(target, 25);  Net.GetCoins.Invoke();
+//
+// This header is the kernel write/read API used by generated Net.luau (Flare.writeu8, Flare.readInstance, …).
+// Per-schema packet/query structs come from emitFlareHeader (Net.clh), not from here.
+
+struct FlareCursor {};
+
+struct FlareSession {
+	auto packet(auto spec);
+	auto query(auto spec);
+};
+
+namespace Flare {
+	FlareCursor cursor();
+	FlareCursor cursor(int size);
+	FlareSession open(Instance host);
+
+	void writeu8(FlareCursor cursor, int value);
+	void writeu16(FlareCursor cursor, int value);
+	void writeu32(FlareCursor cursor, int value);
+	void writei8(FlareCursor cursor, int value);
+	void writei16(FlareCursor cursor, int value);
+	void writei32(FlareCursor cursor, int value);
+	void writef32(FlareCursor cursor, double value);
+	void writef64(FlareCursor cursor, double value);
+	void writebool(FlareCursor cursor, bool value);
+	void writestring(FlareCursor cursor, string value);
+	void writeVector3(FlareCursor cursor, Vector3 value);
+	void writeVector2(FlareCursor cursor, Vector2 value);
+	void writeCFrame(FlareCursor cursor, CFrame value);
+	void writeColor3(FlareCursor cursor, Color3 value);
+	void writeUDim(FlareCursor cursor, UDim value);
+	void writeUDim2(FlareCursor cursor, UDim2 value);
+	void writeBrickColor(FlareCursor cursor, BrickColor value);
+	void writebuffer(FlareCursor cursor, buffer value);
+	void writeInstance(FlareCursor cursor, Instance value);
+
+	int readu8(FlareCursor cursor);
+	int readu16(FlareCursor cursor);
+	int readu32(FlareCursor cursor);
+	int readi8(FlareCursor cursor);
+	int readi16(FlareCursor cursor);
+	int readi32(FlareCursor cursor);
+	double readf32(FlareCursor cursor);
+	double readf64(FlareCursor cursor);
+	bool readbool(FlareCursor cursor);
+	string readstring(FlareCursor cursor);
+	Vector3 readVector3(FlareCursor cursor);
+	Vector2 readVector2(FlareCursor cursor);
+	CFrame readCFrame(FlareCursor cursor);
+	Color3 readColor3(FlareCursor cursor);
+	UDim readUDim(FlareCursor cursor);
+	UDim2 readUDim2(FlareCursor cursor);
+	BrickColor readBrickColor(FlareCursor cursor);
+	buffer readbuffer(FlareCursor cursor);
+	Instance readInstance(FlareCursor cursor);
+}

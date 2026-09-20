@@ -1,0 +1,40 @@
+#pragma once
+
+// Starter player save shape. Keep.Server.Init(.Template) copies this table.
+// Add fields here — Paths are generated from the template instance.
+
+struct Currencies {
+	int Coins = 0;
+	int Gems = 0;
+};
+
+struct PlayerInventory {
+	int Slots = 20;
+};
+
+struct PlayerTrade {
+	string DayKey;
+	int TradesToday = 0;
+	int LastTradeAt = 0;
+	string ActiveTradeId;
+	// Reserved + Receipts tables are created by Keep.Trade.Ensure at runtime.
+};
+
+struct PlayerSettings {
+	int GameMusic = 100;
+	int Effects = 100;
+};
+
+struct PlayerCodes {
+	int RedeemedCount = 0;
+};
+
+struct PlayerTemplate {
+	Currencies Currencies;
+	int Rebirths = 0;
+	int Rank = 0;
+	PlayerInventory Inventory;
+	PlayerTrade Trade;
+	PlayerSettings Settings;
+	PlayerCodes Codes;
+};

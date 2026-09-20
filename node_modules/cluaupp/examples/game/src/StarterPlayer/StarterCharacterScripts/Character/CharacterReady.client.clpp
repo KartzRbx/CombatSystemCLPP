@@ -1,0 +1,6 @@
+#pragma strict
+#include <clpp/roblox.clh>
+
+void init() {
+	post("character local ready");
+}

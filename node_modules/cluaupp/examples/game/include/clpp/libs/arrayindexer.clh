@@ -1,0 +1,12 @@
+#pragma once
+
+// ArrayIndexer — dense reusable ECS ids. Acquire pops a free slot; Release swap-removes.
+
+struct ArrayIndexer {
+	int Next;
+	static ArrayIndexer New();
+	int Acquire();
+	void Release(int id);
+	bool Has(int id);
+	LuaArray<int> Living();
+};
